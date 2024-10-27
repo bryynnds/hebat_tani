@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "238663203816",
+    "project_id": "hebatani-fe74a",
+    "storage_bucket": "hebatani-fe74a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:238663203816:android:c48446d9cce6bb6399c25d",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWSCX2krCHWwMbhFlhdHJ_OaiBUfk1OpA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
