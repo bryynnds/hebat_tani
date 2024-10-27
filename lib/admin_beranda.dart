@@ -22,7 +22,7 @@ class _AdminBerandaPageState extends State<AdminBerandaPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AdminTambahArtikel()),
+                MaterialPageRoute(builder: (context) => AdminTambahArtikelPage()),
               );
             },
           ),
@@ -81,28 +81,65 @@ class _AdminBerandaPageState extends State<AdminBerandaPage> {
                         style: const TextStyle(fontSize: 14.0),
                       ),
                       const SizedBox(height: 16.0),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton.icon(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          label: const Text(
-                            'Edit',
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AdminEditArtikel(
-                                  articleId: id, // Mengirim ID artikel
-                                  judul: judul,
-                                  deskripsi: deskripsi,
-                                  gambar: gambar,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton.icon(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            label: const Text(
+                              'Hapus',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                            onPressed: () async {
+                              // Konfirmasi penghapusan
+                              bool? confirmDelete = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Hapus Artikel'),
+                                  content: const Text('Apakah Anda yakin ingin menghapus artikel ini?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text('Batal'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text('Hapus'),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            );
-                          },
-                        ),
+                              );
+
+                              if (confirmDelete == true) {
+                                await _articlesCollection.doc(id).delete();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Artikel berhasil dihapus')),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8.0),
+                          TextButton.icon(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            label: const Text(
+                              'Edit',
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AdminEditArtikel(
+                                    articleId: id, // Mengirim ID artikel
+                                    judul: judul,
+                                    deskripsi: deskripsi,
+                                    gambar: gambar,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
