@@ -1,43 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AdminTambahArtikel extends StatefulWidget {
+class AdminTambahArtikelPage extends StatefulWidget {
   @override
-  _AdminTambahArtikelState createState() => _AdminTambahArtikelState();
+  _AdminTambahArtikelPageState createState() => _AdminTambahArtikelPageState();
 }
 
-class _AdminTambahArtikelState extends State<AdminTambahArtikel> {
-  final TextEditingController _judulController = TextEditingController();
-  final TextEditingController _deskripsiController = TextEditingController();
-  final TextEditingController _gambarController = TextEditingController();
+class _AdminTambahArtikelPageState extends State<AdminTambahArtikelPage> {
+  final TextEditingController judulController = TextEditingController();
+  final TextEditingController deskripsiController = TextEditingController();
+  final TextEditingController gambarController = TextEditingController();
 
-  final CollectionReference _articlesCollection = FirebaseFirestore.instance.collection('articles');
+  Future<void> addArtikel() async {
+    String judul = judulController.text.trim();
+    String deskripsi = deskripsiController.text.trim();
+    String gambar = gambarController.text.trim();
 
-  // Fungsi untuk menambah artikel ke Firestore
-  Future<void> _tambahArtikel() async {
-    final judul = _judulController.text;
-    final deskripsi = _deskripsiController.text;
-    final gambar = _gambarController.text;
+    // Cek apakah semua input sudah diisi
+    if (judul.isEmpty || deskripsi.isEmpty || gambar.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Semua kolom harus diisi!')),
+      );
+      return;
+    }
 
-    if (judul.isNotEmpty && deskripsi.isNotEmpty && gambar.isNotEmpty) {
-      await _articlesCollection.add({
+    // Buat referensi dokumen baru di koleksi "articles" dan ambil ID-nya
+    final docRef = FirebaseFirestore.instance.collection('articles').doc();
+    final articleId = docRef.id;
+
+    try {
+      // Tambahkan artikel ke Firestore dengan menyimpan articleId di dalam dokumen
+      await docRef.set({
+        'articleId': articleId, // Menyimpan articleId di dalam data
         'judul': judul,
         'deskripsi': deskripsi,
         'gambar': gambar,
       });
 
-      // Bersihkan input setelah artikel disimpan
-      _judulController.clear();
-      _deskripsiController.clear();
-      _gambarController.clear();
-
-      // Tampilkan pesan berhasil
+      // Tampilkan pesan sukses
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Artikel berhasil ditambahkan')),
       );
-    } else {
+
+      // Reset input setelah artikel ditambahkan
+      judulController.clear();
+      deskripsiController.clear();
+      gambarController.clear();
+    } catch (e) {
+      // Tampilkan pesan error jika gagal
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Semua kolom harus diisi')),
+        SnackBar(content: Text('Gagal menambahkan artikel: $e')),
       );
     }
   }
@@ -45,32 +57,56 @@ class _AdminTambahArtikelState extends State<AdminTambahArtikel> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Tambah Artikel')),
+      appBar: AppBar(
+        title: Text('Tambah Artikel'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
-              controller: _judulController,
-              decoration: InputDecoration(labelText: 'Judul Artikel'),
+              controller: judulController,
+              decoration: InputDecoration(
+                labelText: 'Judul',
+                border: OutlineInputBorder(),
+              ),
             ),
+            SizedBox(height: 16),
             TextField(
-              controller: _deskripsiController,
-              decoration: InputDecoration(labelText: 'Deskripsi Artikel'),
+              controller: deskripsiController,
+              decoration: InputDecoration(
+                labelText: 'Deskripsi',
+                border: OutlineInputBorder(),
+              ),
               maxLines: 3,
             ),
+            SizedBox(height: 16),
             TextField(
-              controller: _gambarController,
-              decoration: InputDecoration(labelText: 'URL Gambar Artikel'),
+              controller: gambarController,
+              decoration: InputDecoration(
+                labelText: 'URL Gambar',
+                border: OutlineInputBorder(),
+              ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _tambahArtikel,
-              child: Text('Simpan Artikel'),
+            SizedBox(height: 32),
+            Center(
+              child: ElevatedButton(
+                onPressed: addArtikel,
+                child: Text('Tambah Artikel'),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    judulController.dispose();
+    deskripsiController.dispose();
+    gambarController.dispose();
+    super.dispose();
   }
 }
