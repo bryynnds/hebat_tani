@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Artikel {
   final String judul;
@@ -13,28 +14,16 @@ class Artikel {
 }
 
 class BerandaPage extends StatefulWidget {
-  final Function onGoToKalender; // Tambahkan parameter
+  final Function onGoToKalender;
 
-  const BerandaPage({super.key, required this.onGoToKalender}); // Tambahkan constructor
+  const BerandaPage({super.key, required this.onGoToKalender});
 
   @override
   State<BerandaPage> createState() => _BerandaPageState();
 }
 
 class _BerandaPageState extends State<BerandaPage> {
-  final List<Artikel> artikelList = [
-    const Artikel(
-      judul: 'Jadilah Petani Keren Wak',
-      deskripsi: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-      gambar: 'assets/images/Petani.jpg',
-    ),
-    const Artikel(
-      judul: 'Alamak Wak',
-      deskripsi: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-      gambar: 'assets/images/kunyit.jpg',
-    ),
-    // Artikel tambahan bisa ditambahkan di sini
-  ];
+  final CollectionReference _articlesCollection = FirebaseFirestore.instance.collection('articles');
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +37,7 @@ class _BerandaPageState extends State<BerandaPage> {
                 widget.onGoToKalender(); // Panggil fungsi ketika Card diklik
               },
               child: Card(
-                elevation: 4, // Tambahkan bayangan
+                elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -94,14 +83,29 @@ class _BerandaPageState extends State<BerandaPage> {
               ),
             ),
 
-            // ListView untuk artikel, tanpa card "Jadwal Yang akan datang"
-            ListView.builder(
-              shrinkWrap: true, // Menyesuaikan tinggi sesuai isi
-              physics: const NeverScrollableScrollPhysics(), // Nonaktifkan scroll ListView agar scroll utama bisa dipakai
-              padding: const EdgeInsets.all(16.0),
-              itemCount: artikelList.length,
-              itemBuilder: (context, index) {
-                return buildCard(artikelList[index], context);
+            // ListView untuk artikel dari Firestore
+            StreamBuilder<QuerySnapshot>(
+              stream: _articlesCollection.snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (context, index) {
+                    var artikelData = snapshot.data!.docs[index];
+                    var artikel = Artikel(
+                      judul: artikelData['judul'],
+                      gambar: artikelData['gambar'],
+                      deskripsi: artikelData['deskripsi'],
+                    );
+                    return buildCard(artikel, context);
+                  },
+                );
               },
             ),
           ],
@@ -112,7 +116,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
   Widget buildCard(Artikel artikel, BuildContext context) {
     return Card(
-      elevation: 4, // Tambahkan bayangan
+      elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
       ),
@@ -133,7 +137,7 @@ class _BerandaPageState extends State<BerandaPage> {
             ),
             const Divider(color: Color.fromARGB(255, 33, 33, 33)),
             const SizedBox(height: 5.0),
-            Image.asset(
+            Image.network(
               artikel.gambar,
               height: 150,
               width: double.infinity,
