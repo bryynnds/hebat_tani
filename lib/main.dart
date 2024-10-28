@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Tambahkan import ini
+import 'package:flutter_application_1/jadwal_kegiatan.dart';
 import 'registrasi.dart';
 import 'TabBar.dart'; // Import TabBarPage
 import 'admin_TabBar.dart'; // Import admin_TabBar
@@ -28,6 +29,7 @@ class LoginPage extends StatelessWidget {
         '/TabBar': (context) => const TabBarPage(),
         '/AdminTabBar': (context) => AdminTabBar(), // Tambahkan route untuk admin
         '/tambah_jadwal': (context) => TambahJadwalPage(),
+        '/jadwal_kegiatan': (context) => JadwalKegiatanPage(),
       },
     );
   }
