@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'main.dart';
-import 'TabBar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_application_1/main.dart';
 
 class Daftar extends StatelessWidget {
   const Daftar({super.key});
@@ -10,20 +10,7 @@ class Daftar extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Poppins',
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(fontFamily: 'Poppins'),
-          bodyMedium: TextStyle(fontFamily: 'Poppins'),
-          bodySmall: TextStyle(fontFamily: 'Poppins'),
-          headlineMedium: TextStyle(fontFamily: 'Poppins'),
-        ),
-      ),
       home: const RegisterScreen(),
-      routes: {
-        '/TabBar': (context) => const TabBarPage(),
-        '/login': (context) => const LoginScreen(),
-      },
     );
   }
 }
@@ -58,6 +45,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           email: emailController.text,
           password: passwordController.text,
         );
+
+        // Tambahkan data pengguna ke Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'email': emailController.text,
+          'role': 'user', // atau 'admin' jika diperlukan
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Akun berhasil dibuat!'),
@@ -86,7 +83,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _goToLogin() {
-    Navigator.pushReplacementNamed(context, '/login');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LoginPage(),
+      ),
+    );
   }
 
   @override
@@ -154,10 +156,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
                   const Expanded(
-                    child: Text(
-                      'Dengan ini saya menyetujui syarat dan ketentuan yang berlaku',
-                      style: TextStyle(fontSize: 14),
-                    ),
+                    child: Text('Saya menyetujui syarat dan ketentuan'),
                   ),
                 ],
               ),
@@ -177,7 +176,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Sudah punya akun?'),
+                  const Text('Sudah memiliki akun?'),
                   TextButton(
                     onPressed: _goToLogin,
                     child: const Text('Masuk'),

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Tambahkan import ini
-import 'package:flutter_application_1/jadwal_kegiatan.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'registrasi.dart';
-import 'TabBar.dart'; // Import TabBarPage
-import 'admin_TabBar.dart'; // Import admin_TabBar
+import 'TabBar.dart';
+import 'admin_TabBar.dart';
 import 'firebase_options.dart';
-import 'tambah_jadwal.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +25,7 @@ class LoginPage extends StatelessWidget {
       home: const LoginScreen(),
       routes: {
         '/TabBar': (context) => const TabBarPage(),
-        '/AdminTabBar': (context) => AdminTabBar(), // Tambahkan route untuk admin
-        '/tambah_jadwal': (context) => TambahJadwalPage(),
-        '/jadwal_kegiatan': (context) => JadwalKegiatanPage(),
+        '/AdminTabBar': (context) => AdminTabBar(),
       },
     );
   }
@@ -48,31 +44,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     try {
-      // Melakukan login dengan Firebase Authentication
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
         email: usernameController.text,
         password: passwordController.text,
       );
 
-      // Ambil UID dari pengguna yang sedang login
       String uid = userCredential.user!.uid;
-
-      // Ambil data pengguna dari Firestore
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .get();
 
-      // Cek apakah dokumen ada dan ambil peran pengguna
       if (userDoc.exists) {
-        String role = userDoc['role']; // Ambil role dari dokumen
+        String role = userDoc['role'];
 
-        // Navigasi sesuai role
         if (role == 'admin') {
-          Navigator.pushReplacementNamed(context, '/AdminTabBar'); // Arahkan ke halaman admin
+          Navigator.pushReplacementNamed(context, '/AdminTabBar');
         } else {
-          Navigator.pushReplacementNamed(context, '/TabBar'); // Arahkan ke halaman user biasa
+          Navigator.pushReplacementNamed(context, '/TabBar');
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -146,17 +136,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelText: 'Password',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    // Fungsi Lupa Password
-                  },
-                  child: const Text('Lupa Password?',
-                      style: TextStyle(fontFamily: 'Poppins')),
                 ),
               ),
               const SizedBox(height: 20),
