@@ -7,6 +7,10 @@ import 'TabBar.dart';
 import 'admin_TabBar.dart';
 import 'firebase_options.dart';
 
+import 'jadwal_kegiatan.dart';
+import 'tambah_jadwal.dart';
+import 'edit_jadwal.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -26,6 +30,8 @@ class LoginPage extends StatelessWidget {
       routes: {
         '/TabBar': (context) => const TabBarPage(),
         '/AdminTabBar': (context) => AdminTabBar(),
+        '/jadwal_kegiatan' : (context) => JadwalKegiatanPage(),
+        '/tambah_jadwal' : (context) => TambahJadwalPage(),
       },
     );
   }
