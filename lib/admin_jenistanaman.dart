@@ -1,17 +1,7 @@
 import 'package:flutter/material.dart';
-import 'admin_editjenistanaman.dart'; // Pastikan untuk mengimpor halaman edit
-
-class TanamanInfo {
-  String title; // Ubah menjadi String agar bisa diubah
-  String description; // Ubah menjadi String agar bisa diubah
-  final String imagePath;
-
-  TanamanInfo({
-    required this.title,
-    required this.description,
-    required this.imagePath,
-  });
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'admin_editjenistanaman.dart';
+import 'admin_tambahjenis.dart';
 
 class AdminInformasiTanamanPage extends StatefulWidget {
   @override
@@ -19,56 +9,93 @@ class AdminInformasiTanamanPage extends StatefulWidget {
 }
 
 class _AdminInformasiTanamanPageState extends State<AdminInformasiTanamanPage> {
-  final List<TanamanInfo> tanamanList = [
-    TanamanInfo(
-      title: 'Tanaman Pangan',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-      imagePath: 'assets/images/tanamanpangan.jpg',
-    ),
-    TanamanInfo(
-      title: 'Tanaman Obat',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-      imagePath: 'assets/images/tanamanobat.jpg',
-    ),
-  ];
+  Future<void> deleteTanaman(String docId) async {
+    await FirebaseFirestore.instance.collection('jenis_tanaman').doc(docId).delete();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Data berhasil dihapus')),
+    );
+  }
 
-  void editTanaman(int index) {
-    final tanaman = tanamanList[index];
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AdminEditJenisTanamanPage(
-          title: tanaman.title,
-          description: tanaman.description,
-          imagePath: tanaman.imagePath,
-          onSave: (String newTitle, String newDescription) {
-            setState(() {
-              // Update data tanaman
-              tanamanList[index].title = newTitle;
-              tanamanList[index].description = newDescription;
-            });
-          },
-        ),
-      ),
+  void confirmDelete(String docId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Konfirmasi Hapus"),
+          content: Text("Apakah Anda yakin ingin menghapus data ini?"),
+          actions: [
+            TextButton(
+              child: Text("Batal"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text("Hapus"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                deleteTanaman(docId);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Admin Informasi Tanaman")),
-      body: ListView.builder(
-        itemCount: tanamanList.length,
-        itemBuilder: (context, index) {
-          final tanaman = tanamanList[index];
-          return ListTile(
-            leading: Image.asset(tanaman.imagePath, width: 50, height: 50),
-            title: Text(tanaman.title),
-            subtitle: Text(tanaman.description),
-            trailing: IconButton(
-              icon: Icon(Icons.edit),
-              onPressed: () => editTanaman(index),
-            ),
+      appBar: AppBar(
+        title: Text("Admin Informasi Tanaman"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AdminTambahJenisTanamanPage()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance.collection('jenis_tanaman').snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) return CircularProgressIndicator();
+          return ListView(
+            children: snapshot.data!.docs.map((doc) {
+              return ListTile(
+                title: Text(doc['title']),
+                subtitle: Text(doc['description']),
+                leading: Image.network(doc['imagePath'], width: 50, height: 50),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AdminEditJenisTanamanPage(docId: doc.id),
+                          ),
+                        ).then((_) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Data berhasil diperbarui')),
+                          );
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () => confirmDelete(doc.id),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
           );
         },
       ),
