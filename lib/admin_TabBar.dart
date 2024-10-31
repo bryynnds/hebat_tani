@@ -2,18 +2,31 @@ import 'package:flutter/material.dart';
 import './admin_beranda.dart';
 import './admin_informasitanaman.dart';
 
+class TanamanInfo {
+  final String title;
+  final String description;
+  final String imagePath;
+
+  TanamanInfo({
+    required this.title,
+    required this.description,
+    required this.imagePath,
+  });
+}
+
 class AdminTabBar extends StatefulWidget {
   @override
   _AdminTabBarState createState() => _AdminTabBarState();
 }
 
-class _AdminTabBarState extends State<AdminTabBar> with SingleTickerProviderStateMixin {
+class _AdminTabBarState extends State<AdminTabBar>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -25,23 +38,33 @@ class _AdminTabBarState extends State<AdminTabBar> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          AdminBerandaPage(),
-          AdminInformasiTanamanPage(),
-        ],
-      ),
-      bottomNavigationBar: Material(
-        color: Colors.green,
-        child: TabBar(
+        body: TabBarView(
           controller: _tabController,
-          tabs: [
-            Tab(icon: Icon(Icons.home), text: "Beranda"),
-            Tab(icon: Icon(Icons.grass), text: "Informasi Tanaman"),
+          children: [
+            AdminBerandaPage(),
+            AdminInformasiTanamanPage(),
+            AdminBerandaPage()
+
           ],
         ),
-      ),
-    );
+        bottomNavigationBar: SizedBox(
+          height: 53,
+          width: double.infinity,
+          child: Material(
+            elevation: 10,
+            color: const Color.fromARGB(255, 46, 125, 50),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Colors.white,
+              indicatorColor: Colors.white,
+              unselectedLabelColor: const Color.fromARGB(255, 0, 0, 0),
+              tabs: const [
+                Tab(icon: Icon(Icons.home)),
+                Tab(icon: Icon(Icons.grass)),
+                Tab(icon: Icon(Icons.grass_rounded)),
+              ],
+            ),
+          ),
+        ));
   }
 }
