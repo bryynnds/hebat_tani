@@ -6,7 +6,6 @@ import 'registrasi.dart';
 import 'TabBar.dart';
 import 'admin_TabBar.dart';
 import 'firebase_options.dart';
-
 import 'jadwal_kegiatan.dart';
 import 'tambah_jadwal.dart';
 
@@ -15,7 +14,36 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Memastikan akun admin hanya dibuat satu kali
+  await createAdminAccountOnce();
+
   runApp(const LoginPage());
+}
+
+Future<void> createAdminAccountOnce() async {
+  // Mengecek apakah dokumen admin sudah ada
+  final adminDoc = await FirebaseFirestore.instance.collection('users').doc('admin_id').get();
+  if (!adminDoc.exists) {
+    try {
+      // Membuat akun admin baru
+      UserCredential adminCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: 'admin@gmail.com',
+        password: '123456', // Pastikan password ini aman
+      );
+
+      // Menyimpan informasi akun admin di Firestore
+      await FirebaseFirestore.instance.collection('users').doc('admin_id').set({
+        'email': 'admin@gmail.com',
+        'role': 'admin',
+      });
+      print("Akun admin berhasil dibuat.");
+    } catch (e) {
+      print("Error saat membuat akun admin: $e");
+    }
+  } else {
+    print("Akun admin sudah ada. Melewatkan pembuatan akun.");
+  }
 }
 
 class LoginPage extends StatelessWidget {
@@ -29,8 +57,9 @@ class LoginPage extends StatelessWidget {
       routes: {
         '/TabBar': (context) => const TabBarPage(),
         '/AdminTabBar': (context) => AdminTabBar(),
-        '/jadwal_kegiatan' : (context) => JadwalKegiatanPage(),
-        '/tambah_jadwal' : (context) => TambahJadwalPage(),
+        '/jadwal_kegiatan': (context) => JadwalKegiatanPage(),
+        '/tambah_jadwal': (context) => TambahJadwalPage(),
+        '/login': (context) => LoginScreen()
       },
     );
   }

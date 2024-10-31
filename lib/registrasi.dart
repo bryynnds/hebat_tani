@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_application_1/main.dart';
 
 class Daftar extends StatelessWidget {
   const Daftar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const RegisterScreen(),
-    );
+    return RegisterScreen();
   }
 }
 
@@ -40,6 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     } else if (passwordController.text == confirmPasswordController.text) {
       try {
+        // Mendaftar pengguna baru
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
           email: emailController.text,
@@ -52,8 +49,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             .doc(userCredential.user!.uid)
             .set({
           'email': emailController.text,
-          'role': 'user', // atau 'admin' jika diperlukan
+          'role': 'user', // Atur peran pengguna
         });
+
+        // Log jika berhasil menambahkan data
+        print('Pengguna berhasil ditambahkan ke Firestore dengan ID: ${userCredential.user!.uid}');
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -64,6 +64,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
         Navigator.pushReplacementNamed(context, '/login');
       } catch (e) {
+        // Log error
+        print('Error saat membuat akun: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
@@ -83,12 +85,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _goToLogin() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const LoginPage(),
-      ),
-    );
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
