@@ -3,12 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'admin_editjenistanaman.dart';
 import 'admin_tambahjenis.dart';
 
-class AdminInformasiTanamanPage extends StatefulWidget {
+class AdminJenistanaman extends StatefulWidget {
   @override
-  _AdminInformasiTanamanPageState createState() => _AdminInformasiTanamanPageState();
+  _AdminJenistanamanState createState() => _AdminJenistanamanState();
 }
 
-class _AdminInformasiTanamanPageState extends State<AdminInformasiTanamanPage> {
+class _AdminJenistanamanState extends State<AdminJenistanaman> {
   Future<void> deleteTanaman(String docId) async {
     await FirebaseFirestore.instance.collection('jenis_tanaman').doc(docId).delete();
     ScaffoldMessenger.of(context).showSnackBar(

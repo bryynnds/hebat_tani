@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import './admin_beranda.dart';
 import 'admin_jenistanaman.dart';
+import './admin_detailtanaman.dart';
 
 class TanamanInfo {
   final String title;
@@ -42,9 +43,8 @@ class _AdminTabBarState extends State<AdminTabBar>
           controller: _tabController,
           children: [
             AdminBerandaPage(),
+            AdminJenistanaman(),
             AdminInformasiTanamanPage(),
-            AdminBerandaPage()
-
           ],
         ),
         bottomNavigationBar: SizedBox(
