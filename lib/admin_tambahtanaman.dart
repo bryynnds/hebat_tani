@@ -4,35 +4,18 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-class AdminEditTanamanPage extends StatefulWidget {
-  final String docId; // ID dokumen Firebase untuk data tanaman
-
-  AdminEditTanamanPage({required this.docId});
-
+class AdminTambahTanamanPage extends StatefulWidget {
   @override
-  _AdminEditTanamanPageState createState() => _AdminEditTanamanPageState();
+  _AdminTambahTanamanPageState createState() => _AdminTambahTanamanPageState();
 }
 
-class _AdminEditTanamanPageState extends State<AdminEditTanamanPage> {
+class _AdminTambahTanamanPageState extends State<AdminTambahTanamanPage> {
   final TextEditingController _namaTanamanController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
   File? _imageFile;
-  String? _imageUrl; // URL gambar untuk disimpan di Firestore
+  String? _imageUrl; // URL gambar untuk disimpan ke Firebase Firestore
 
   final ImagePicker _picker = ImagePicker();
-
-  @override
-  void initState() {
-    super.initState();
-    // Mendapatkan data tanaman dari Firestore dan mengisi controller
-    FirebaseFirestore.instance.collection('tanaman').doc(widget.docId).get().then((snapshot) {
-      _namaTanamanController.text = snapshot['nama_tanaman'];
-      _deskripsiController.text = snapshot['deskripsi'];
-      setState(() {
-        _imageUrl = snapshot['gambar']; // Menyimpan URL gambar dari Firestore
-      });
-    });
-  }
 
   // Fungsi untuk memilih gambar dari galeri
   Future<void> _pickImage() async {
@@ -61,31 +44,32 @@ class _AdminEditTanamanPageState extends State<AdminEditTanamanPage> {
     }
   }
 
-  // Fungsi untuk memperbarui data tanaman di Firestore
-  Future<void> updateTanaman() async {
-    // Jika gambar baru dipilih, upload dulu gambar tersebut
-    if (_imageFile != null) {
-      await _uploadImageToFirebase();
+  // Fungsi untuk menambah data tanaman ke Firestore
+  Future<void> tambahTanaman() async {
+    await _uploadImageToFirebase();
+
+    if (_imageUrl != null) {
+      await FirebaseFirestore.instance.collection('tanaman').add({
+        'nama_tanaman': _namaTanamanController.text,
+        'deskripsi': _deskripsiController.text,
+        'gambar': _imageUrl, // Simpan URL gambar di Firestore
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Data tanaman berhasil ditambahkan')),
+      );
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengunggah gambar')),
+      );
     }
-
-    // Memperbarui data di Firestore, termasuk URL gambar jika diperbarui
-    await FirebaseFirestore.instance.collection('tanaman').doc(widget.docId).update({
-      'nama_tanaman': _namaTanamanController.text,
-      'deskripsi': _deskripsiController.text,
-      'gambar': _imageUrl, // URL gambar yang diperbarui atau yang sudah ada
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Data tanaman berhasil diperbarui')),
-    );
-    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edit Tanaman"),
+        title: Text("Tambah Tanaman"),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -101,18 +85,16 @@ class _AdminEditTanamanPageState extends State<AdminEditTanamanPage> {
             ),
             SizedBox(height: 20),
             _imageFile != null
-                ? Image.file(_imageFile!, width: 100, height: 100) // Gambar baru yang dipilih
-                : _imageUrl != null
-                    ? Image.network(_imageUrl!, width: 100, height: 100) // Gambar yang ada di Firebase
-                    : Text("Belum ada gambar yang dipilih"),
+                ? Image.file(_imageFile!, width: 100, height: 100)
+                : Text("Belum ada gambar yang dipilih"),
             ElevatedButton(
               onPressed: _pickImage,
               child: Text("Pilih Gambar"),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: updateTanaman,
-              child: Text("Simpan Perubahan"),
+              onPressed: tambahTanaman,
+              child: Text("Simpan"),
             ),
           ],
         ),
