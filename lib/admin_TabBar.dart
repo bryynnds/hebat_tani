@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import './admin_beranda.dart';
-import './admin_informasitanaman.dart';
+import 'admin_jenistanaman.dart';
 
 class TanamanInfo {
   final String title;
