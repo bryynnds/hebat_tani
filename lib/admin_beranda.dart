@@ -15,7 +15,7 @@ class _AdminBerandaPageState extends State<AdminBerandaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Beranda'),
+        title: const Text('Artikel'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

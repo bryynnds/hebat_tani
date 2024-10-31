@@ -47,7 +47,7 @@ class _AdminJenistanamanState extends State<AdminJenistanaman> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Admin Informasi Tanaman"),
+        title: Text("Jenis Tanaman"),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
