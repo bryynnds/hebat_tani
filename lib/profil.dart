@@ -4,12 +4,22 @@ import 'notifikasi.dart';
 import 'ketentuan_layanan.dart';
 import 'kebijakan_privasi.dart';
 import 'main.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Profil extends StatefulWidget {
   const Profil({super.key});
 
   @override
   State<Profil> createState() => _ProfilState();
+}
+
+Future<void> logout(BuildContext context) async {
+  await FirebaseAuth.instance.signOut();
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(
+        builder: (context) =>
+            LoginPage()), // Ganti MainPage dengan halaman login
+  );
 }
 
 class _ProfilState extends State<Profil> {
@@ -84,7 +94,8 @@ class _ProfilState extends State<Profil> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => KetentuanLayananPage()),
+                  MaterialPageRoute(
+                      builder: (context) => KetentuanLayananPage()),
                 );
                 // Aksi saat menekan ketentuan layanan
               },
@@ -97,7 +108,8 @@ class _ProfilState extends State<Profil> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => KebijakanPrivasiPage()),
+                  MaterialPageRoute(
+                      builder: (context) => KebijakanPrivasiPage()),
                 );
                 // Aksi saat menekan kebijakan privasi
               },
@@ -107,16 +119,7 @@ class _ProfilState extends State<Profil> {
             ListTile(
               leading: Icon(Icons.logout),
               title: Text('Logout'),
-              onTap: () {
-                // Aksi saat menekan logout
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          LoginPage()), // Arahkan ke halaman utama atau login
-                  (Route<dynamic> route) => false,
-                );
-              },
+              onTap: () => logout(context),
             ),
           ],
         ),
