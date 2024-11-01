@@ -3,7 +3,7 @@ import 'ubah_profil.dart';
 import 'notifikasi.dart';
 import 'ketentuan_layanan.dart';
 import 'kebijakan_privasi.dart';
-import '../../main.dart';
+import '../../login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Profil extends StatefulWidget {
