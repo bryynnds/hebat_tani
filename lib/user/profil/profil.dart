@@ -15,16 +15,46 @@ class Profil extends StatefulWidget {
 
 Future<void> logout(BuildContext context) async {
   await FirebaseAuth.instance.signOut();
+  // Menampilkan alert berhasil logout setelah logout
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Berhasil logout'),
+      duration: Duration(seconds: 2),
+    ),
+  );
   Navigator.of(context).pushReplacement(
-    MaterialPageRoute(
-        builder: (context) =>
-            LoginPage()), // Ganti MainPage dengan halaman login
+    MaterialPageRoute(builder: (context) => LoginPage()),
   );
 }
 
 class _ProfilState extends State<Profil> {
   String userName = 'Nama Pengguna';
   String userEmail = 'email@example.com';
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Konfirmasi Logout'),
+          content: Text('Apakah Anda yakin ingin logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Menutup dialog
+                logout(context); // Melakukan logout
+              },
+              child: Text('Ya, Logout'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,15 +74,12 @@ class _ProfilState extends State<Profil> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           children: [
-            // Foto Profil
             CircleAvatar(
               radius: 50,
               backgroundImage: NetworkImage(
                   'https://example.com/profile.jpg'), // Ganti dengan URL foto profil
             ),
             SizedBox(height: 16),
-
-            // Nama dan Email
             Text(
               userName,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -67,27 +94,22 @@ class _ProfilState extends State<Profil> {
               leading: Icon(Icons.edit),
               title: Text('Ubah Profil'),
               onTap: () {
-                // Aksi untuk mengubah profil
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => UbahProfilPage()),
                 );
               },
             ),
-            // Menu Notifikasi
             ListTile(
               leading: Icon(Icons.notifications),
               title: Text('Notifikasi'),
               onTap: () {
-                // Aksi saat menekan notifikasi
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => NotifikasiPage()),
                 );
               },
             ),
-
-            // Menu Pengaturan
             ListTile(
               leading: Icon(Icons.article),
               title: Text('Ketentuan Layanan'),
@@ -97,11 +119,8 @@ class _ProfilState extends State<Profil> {
                   MaterialPageRoute(
                       builder: (context) => KetentuanLayananPage()),
                 );
-                // Aksi saat menekan ketentuan layanan
               },
             ),
-
-            // Menu Kebijakan Privasi
             ListTile(
               leading: Icon(Icons.privacy_tip),
               title: Text('Kebijakan Privasi'),
@@ -111,15 +130,12 @@ class _ProfilState extends State<Profil> {
                   MaterialPageRoute(
                       builder: (context) => KebijakanPrivasiPage()),
                 );
-                // Aksi saat menekan kebijakan privasi
               },
             ),
-
-            // Menu Logout
             ListTile(
               leading: Icon(Icons.logout),
               title: Text('Logout'),
-              onTap: () => logout(context),
+              onTap: () => _confirmLogout(context),
             ),
           ],
         ),
