@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import './admin_beranda.dart';
-import 'admin_jenistanaman.dart';
-import './admin_detailtanaman.dart';
+import 'artikel_beranda/admin_beranda.dart';
+import 'jenis_tanaman/admin_jenistanaman.dart';
+import 'detail_tanaman/admin_detailtanaman.dart';
 
 class TanamanInfo {
   final String title;

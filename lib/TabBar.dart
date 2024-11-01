@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import './beranda.dart' as beranda;
-import './catatan_pertanian.dart' as catatan;
-import './informasi_tanaman.dart' as informasi;
-import './kalender_pengingat.dart' as kalender;
-import 'profil.dart';
+import 'user/beranda/beranda.dart' as beranda;
+import 'user/catatan_pertanian/catatan_pertanian.dart' as catatan;
+import 'user/informasi_tanaman/informasi_tanaman.dart' as informasi;
+import 'user/kalender_pengingat/kalender_pengingat.dart' as kalender;
+import 'user/profil/profil.dart';
 
 // Tambahkan parameter ke constructor TabBarPage
 class TabBarPage extends StatefulWidget {

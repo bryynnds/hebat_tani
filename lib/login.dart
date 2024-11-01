@@ -4,10 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'registrasi.dart';
 import 'TabBar.dart';
-import 'admin_TabBar.dart';
+import 'admin/admin_TabBar.dart';
 import 'firebase_options.dart';
-import 'jadwal_kegiatan.dart';
-import 'tambah_jadwal.dart';
+import 'user/kalender_pengingat/jadwal_kegiatan.dart';
+import 'user/kalender_pengingat/tambah_jadwal.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
