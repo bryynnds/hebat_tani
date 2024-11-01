@@ -59,7 +59,7 @@ class _UbahProfilPageState extends State<UbahProfilPage> {
 
       // Langkah 3: Perbarui data di Firestore (nama dan email)
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'name': _nameController.text,
+        'username': _nameController.text,
         'email': _emailController.text,
       });
 
@@ -96,7 +96,7 @@ class _UbahProfilPageState extends State<UbahProfilPage> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(labelText: 'Nama'),
+              decoration: InputDecoration(labelText: 'Username'),
             ),
             TextField(
               enabled: false,
