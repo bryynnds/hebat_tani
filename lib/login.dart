@@ -13,6 +13,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Hebatani',
       debugShowCheckedModeBanner: false,
       home: const LoginScreen(),
       routes: {
