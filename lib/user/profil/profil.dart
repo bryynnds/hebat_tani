@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'ubah_profil.dart';
 import 'notifikasi.dart';
@@ -5,6 +7,9 @@ import 'ketentuan_layanan.dart';
 import 'kebijakan_privasi.dart';
 import '../../login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Profil extends StatefulWidget {
   const Profil({super.key});
@@ -15,7 +20,6 @@ class Profil extends StatefulWidget {
 
 Future<void> logout(BuildContext context) async {
   await FirebaseAuth.instance.signOut();
-  // Menampilkan alert berhasil logout setelah logout
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text('Berhasil logout'),
@@ -30,6 +34,64 @@ Future<void> logout(BuildContext context) async {
 class _ProfilState extends State<Profil> {
   String userName = 'Nama Pengguna';
   String userEmail = 'email@example.com';
+  String profileImageUrl = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserData();
+  }
+
+  Future<void> _getUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists) {
+        setState(() {
+          userName = userDoc['username'] ?? 'Nama Pengguna';
+          userEmail = user.email ?? 'email@example.com';
+          profileImageUrl = userDoc['foto_profil'] ??
+              'https://example.com/default_profile.jpg'; // URL default jika belum ada
+        });
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Upload ke Firebase Storage
+        String fileName = 'profile_pictures/${user.uid}.jpg';
+        Reference ref = FirebaseStorage.instance.ref().child(fileName);
+        await ref.putFile(File(image.path));
+
+        // Ambil URL dari gambar yang diunggah
+        String downloadUrl = await ref.getDownloadURL();
+
+        // Update Firestore dengan URL baru
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'foto_profil': downloadUrl});
+
+        setState(() {
+          profileImageUrl = downloadUrl;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Foto profil berhasil diperbarui')),
+        );
+      }
+    }
+  }
 
   Future<void> _confirmLogout(BuildContext context) async {
     showDialog(
@@ -74,10 +136,32 @@ class _ProfilState extends State<Profil> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(
-                  'https://example.com/profile.jpg'), // Ganti dengan URL foto profil
+            GestureDetector(
+              onTap: _pickAndUploadImage, // Fungsi untuk unggah foto profil
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: NetworkImage(profileImageUrl),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 163, 163, 163), // Background warna ikon
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 16),
             Text(
@@ -97,7 +181,8 @@ class _ProfilState extends State<Profil> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => UbahProfilPage()),
-                );
+                ).then((_) =>
+                    _getUserData()); // Mengambil data terbaru saat kembali
               },
             ),
             ListTile(
