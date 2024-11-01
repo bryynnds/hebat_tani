@@ -4,6 +4,7 @@ class KetentuanLayananPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: const Color.fromARGB(255, 46, 125, 50),
@@ -11,7 +12,7 @@ class KetentuanLayananPage extends StatelessWidget {
           'Ketentuan Layanan',
           style: TextStyle(
               fontFamily: 'Poppins',
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w300,
               color: Colors.white),
         ),
       ),

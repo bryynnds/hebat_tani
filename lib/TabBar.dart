@@ -79,7 +79,7 @@ class _TabBarPageState extends State<TabBarPage>
             style: const TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),
               fontFamily: 'Poppins',
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w300,
             ),
           ),
         ),

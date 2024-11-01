@@ -46,8 +46,17 @@ Future<void> _confirmLogout(BuildContext context) async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("Profil"),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: const Color.fromARGB(255, 46, 125, 50),
+        title: const Text(
+          'Profil',
+          style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w300,
+              color: Colors.white),
+        ),
       ),
       body: Center(
         child: Column(
@@ -55,7 +64,8 @@ Future<void> _confirmLogout(BuildContext context) async {
           children: [
             CircleAvatar(
               radius: 50,
-              backgroundImage: AssetImage('assets/admin_profile.png'), // Replace with your asset path
+              backgroundColor: Colors.white,
+              child: Icon(Icons.person, size: 60,), // Replace with your asset path
             ),
             SizedBox(height: 20),
             Text(

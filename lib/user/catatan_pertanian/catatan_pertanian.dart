@@ -38,6 +38,7 @@ class CatatanPertanianPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('catatan').snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {

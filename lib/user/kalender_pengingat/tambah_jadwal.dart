@@ -31,7 +31,18 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Tambah Jadwal")),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: const Color.fromARGB(255, 46, 125, 50),
+        title: const Text(
+          'Tambah Jadwal',
+          style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w300,
+              color: Colors.white),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

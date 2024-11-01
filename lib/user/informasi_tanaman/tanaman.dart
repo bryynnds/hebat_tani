@@ -9,6 +9,7 @@ class TanamanPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: const Color.fromARGB(255, 46, 125, 50),
@@ -16,7 +17,7 @@ class TanamanPage extends StatelessWidget {
           'Detail Tanaman',
           style: const TextStyle(
             fontFamily: 'Poppins',
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w300,
             color: Colors.white,
           ),
         ),

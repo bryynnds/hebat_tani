@@ -49,9 +49,9 @@ class _AdminTabBarState extends State<AdminTabBar>
               indicatorColor: Colors.white,
               unselectedLabelColor: const Color.fromARGB(255, 0, 0, 0),
               tabs: const [
-                Tab(icon: Icon(Icons.home)),
+                Tab(icon: Icon(Icons.article)),
                 Tab(icon: Icon(Icons.grass)),
-                Tab(icon: Icon(Icons.grass_rounded)),
+                Tab(icon: Icon(Icons.local_florist)),
                 Tab(icon: Icon(Icons.person),)
               ],
             ),

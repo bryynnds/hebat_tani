@@ -99,8 +99,17 @@ class _AdminTambahArtikelPageState extends State<AdminTambahArtikelPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Tambah Artikel'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: const Color.fromARGB(255, 46, 125, 50),
+        title: const Text(
+          'Tambah Artikel',
+          style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w300,
+              color: Colors.white),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

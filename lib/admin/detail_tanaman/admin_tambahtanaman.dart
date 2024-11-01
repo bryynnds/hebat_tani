@@ -70,8 +70,17 @@ class _AdminTambahTanamanPageState extends State<AdminTambahTanamanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("Tambah Tanaman"),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: const Color.fromARGB(255, 46, 125, 50),
+        title: const Text(
+          'Tambah Tanaman',
+          style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w300,
+              color: Colors.white),
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),

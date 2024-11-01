@@ -8,7 +8,18 @@ class JadwalKegiatanPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Jadwal Kegiatan")),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: const Color.fromARGB(255, 46, 125, 50),
+        title: const Text(
+          'Semua Jadwal',
+          style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w300,
+              color: Colors.white),
+        ),
+      ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('jadwal').snapshots(),
         builder: (context, snapshot) {

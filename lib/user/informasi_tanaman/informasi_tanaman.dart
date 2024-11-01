@@ -16,6 +16,7 @@ class _InformasiTanamanPageState extends State<InformasiTanamanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: StreamBuilder<QuerySnapshot>(
         stream: tanamanCollection.snapshots(),
         builder: (context, snapshot) {
