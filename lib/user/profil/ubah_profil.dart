@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UbahProfilPage extends StatefulWidget {
   @override
@@ -8,7 +10,71 @@ class UbahProfilPage extends StatefulWidget {
 class _UbahProfilPageState extends State<UbahProfilPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _oldPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists) {
+        setState(() {
+          _nameController.text = userDoc['username'] ?? '';
+          _emailController.text = user.email ?? '';
+        });
+      }
+    }
+  }
+
+  Future<void> _updateProfile() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    try {
+      // Reautentikasi menggunakan kata sandi lama
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: _oldPasswordController.text,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Langkah 1: Perbarui email jika berubah
+      if (_emailController.text.isNotEmpty && _emailController.text != user.email) {
+        await user.updateEmail(_emailController.text);
+      }
+
+      // Langkah 2: Perbarui kata sandi jika kata sandi baru diisi
+      if (_newPasswordController.text.isNotEmpty) {
+        await user.updatePassword(_newPasswordController.text);
+      }
+
+      // Langkah 3: Perbarui data di Firestore (nama dan email)
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'name': _nameController.text,
+        'email': _emailController.text,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Profil berhasil diperbarui')),
+      );
+      Navigator.pop(context); // Kembali ke halaman profil
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memperbarui profil: $e')),
+      );
+    }
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -25,20 +91,23 @@ class _UbahProfilPageState extends State<UbahProfilPage> {
               decoration: InputDecoration(labelText: 'Nama'),
             ),
             TextField(
+              enabled: false,
               controller: _emailController,
               decoration: InputDecoration(labelText: 'Email'),
             ),
             TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Kata Sandi'),
+              controller: _oldPasswordController,
+              decoration: InputDecoration(labelText: 'Kata Sandi Lama'),
+              obscureText: true,
+            ),
+            TextField(
+              controller: _newPasswordController,
+              decoration: InputDecoration(labelText: 'Kata Sandi Baru (opsional)'),
               obscureText: true,
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                // Aksi simpan data
-                Navigator.pop(context); // Kembali ke halaman profil
-              },
+              onPressed: _updateProfile,
               child: Text('Simpan'),
             ),
           ],
