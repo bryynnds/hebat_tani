@@ -45,6 +45,12 @@ class _AdminInformasiTanamanPageState extends State<AdminInformasiTanamanPage> {
     );
   }
 
+  // Fungsi untuk mengambil nama jenis tanaman berdasarkan ID
+  Future<String> fetchJenisTanaman(String jenisTanamanId) async {
+    final doc = await FirebaseFirestore.instance.collection('jenis_tanaman').doc(jenisTanamanId).get();
+    return doc.exists ? doc['title'] : 'Jenis tidak ditemukan';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,37 +71,39 @@ class _AdminInformasiTanamanPageState extends State<AdminInformasiTanamanPage> {
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('tanaman').snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return CircularProgressIndicator();
+          if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
           return ListView(
             children: snapshot.data!.docs.map((doc) {
-              return ListTile(
-                title: Text(doc['nama_tanaman']),
-                subtitle: Text(doc['deskripsi']),
-                leading: Image.network(doc['gambar'], width: 50, height: 50),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AdminEditTanamanPage(docId: doc.id),
-                          ),
-                        ).then((_) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Data tanaman berhasil diperbarui')),
-                          );
-                        });
-                      },
+              return FutureBuilder(
+                future: fetchJenisTanaman(doc['id_jenis_tanaman']),
+                builder: (context, AsyncSnapshot<String> jenisSnapshot) {
+                  if (!jenisSnapshot.hasData) return CircularProgressIndicator();
+                  return ListTile(
+                    title: Text(doc['nama_tanaman']),
+                    subtitle: Text('${jenisSnapshot.data}'),
+                    leading: Image.network(doc['gambar'], width: 50, height: 50),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AdminEditTanamanPage(docId: doc.id),
+                              ),
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () => confirmDelete(doc.id),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () => confirmDelete(doc.id),
-                    ),
-                  ],
-                ),
+                  );
+                },
               );
             }).toList(),
           );

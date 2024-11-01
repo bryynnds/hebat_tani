@@ -44,26 +44,34 @@ class _AdminEditJenisTanamanPageState extends State<AdminEditJenisTanamanPage> {
   }
 
   Future<void> updateTanaman() async {
-    String imageUrl = _initialImageUrl ?? '';
-    
-    if (_imagePath != null) {
-      String fileName = _imagePath!.split('/').last;
-      Reference storageRef = FirebaseStorage.instance.ref().child('tanaman_images/$fileName');
-      await storageRef.putFile(File(_imagePath!));
-      imageUrl = await storageRef.getDownloadURL();
-    }
-
-    await FirebaseFirestore.instance.collection('jenis_tanaman').doc(widget.docId).update({
-      'title': _titleController.text,
-      'description': _descriptionController.text,
-      'imagePath': imageUrl,
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Data berhasil diperbarui')),
-    );
-    Navigator.pop(context);
+  String imageUrl = _initialImageUrl ?? '';
+  
+  // If a new image is selected, upload it
+  if (_imagePath != null) {
+    String fileName = _imagePath!.split('/').last;
+    Reference storageRef = FirebaseStorage.instance.ref().child('tanaman_images/$fileName');
+    await storageRef.putFile(File(_imagePath!));
+    imageUrl = await storageRef.getDownloadURL();
   }
+
+  // Update plant type data in Firestore
+  await FirebaseFirestore.instance.collection('jenis_tanaman').doc(widget.docId).update({
+    'title': _titleController.text,
+    'description': _descriptionController.text,
+    'imagePath': imageUrl,
+  });
+
+  // Show success alert
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Data berhasil diperbarui')),
+  );
+
+  // Wait briefly before navigating back
+  Future.delayed(Duration(seconds: 1), () {
+    Navigator.of(context).pop();
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {

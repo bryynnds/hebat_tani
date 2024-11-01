@@ -81,11 +81,7 @@ class _AdminJenistanamanState extends State<AdminJenistanaman> {
                           MaterialPageRoute(
                             builder: (context) => AdminEditJenisTanamanPage(docId: doc.id),
                           ),
-                        ).then((_) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Data berhasil diperbarui')),
-                          );
-                        });
+                        );
                       },
                     ),
                     IconButton(

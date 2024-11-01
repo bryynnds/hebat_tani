@@ -14,6 +14,7 @@ class _AdminTambahTanamanPageState extends State<AdminTambahTanamanPage> {
   final TextEditingController _deskripsiController = TextEditingController();
   File? _imageFile;
   String? _imageUrl; // URL gambar untuk disimpan ke Firebase Firestore
+  String? selectedJenisTanamanId; // Menyimpan ID jenis tanaman yang dipilih
 
   final ImagePicker _picker = ImagePicker();
 
@@ -48,11 +49,12 @@ class _AdminTambahTanamanPageState extends State<AdminTambahTanamanPage> {
   Future<void> tambahTanaman() async {
     await _uploadImageToFirebase();
 
-    if (_imageUrl != null) {
+    if (_imageUrl != null && selectedJenisTanamanId != null) {
       await FirebaseFirestore.instance.collection('tanaman').add({
         'nama_tanaman': _namaTanamanController.text,
         'deskripsi': _deskripsiController.text,
         'gambar': _imageUrl, // Simpan URL gambar di Firestore
+        'id_jenis_tanaman': selectedJenisTanamanId, // Simpan ID jenis tanaman
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Data tanaman berhasil ditambahkan')),
@@ -60,7 +62,7 @@ class _AdminTambahTanamanPageState extends State<AdminTambahTanamanPage> {
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengunggah gambar')),
+        SnackBar(content: Text('Harap lengkapi semua data dan pilih jenis tanaman')),
       );
     }
   }
@@ -74,6 +76,7 @@ class _AdminTambahTanamanPageState extends State<AdminTambahTanamanPage> {
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             TextField(
               controller: _namaTanamanController,
@@ -82,6 +85,29 @@ class _AdminTambahTanamanPageState extends State<AdminTambahTanamanPage> {
             TextField(
               controller: _deskripsiController,
               decoration: InputDecoration(labelText: "Deskripsi"),
+            ),
+            SizedBox(height: 20),
+            Text("Pilih Jenis Tanaman"),
+            StreamBuilder(
+              stream: FirebaseFirestore.instance.collection('jenis_tanaman').snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) return CircularProgressIndicator();
+                return DropdownButton<String>(
+                  hint: Text("Pilih Jenis Tanaman"),
+                  value: selectedJenisTanamanId,
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedJenisTanamanId = newValue;
+                    });
+                  },
+                  items: snapshot.data!.docs.map((DocumentSnapshot document) {
+                    return DropdownMenuItem<String>(
+                      value: document.id, // ID dokumen sebagai nilai dropdown
+                      child: Text(document['title']), // Nama jenis tanaman ditampilkan
+                    );
+                  }).toList(),
+                );
+              },
             ),
             SizedBox(height: 20),
             _imageFile != null

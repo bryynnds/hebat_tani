@@ -14,10 +14,13 @@ class AdminEditTanamanPage extends StatefulWidget {
 }
 
 class _AdminEditTanamanPageState extends State<AdminEditTanamanPage> {
+  bool _isUpdated = false; // Flag untuk melacak jika pembaruan dilakukan
+
   final TextEditingController _namaTanamanController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
   File? _imageFile;
   String? _imageUrl; // URL gambar untuk disimpan di Firestore
+  String? selectedJenisTanamanId; // Menyimpan ID jenis tanaman yang dipilih
 
   final ImagePicker _picker = ImagePicker();
 
@@ -25,11 +28,16 @@ class _AdminEditTanamanPageState extends State<AdminEditTanamanPage> {
   void initState() {
     super.initState();
     // Mendapatkan data tanaman dari Firestore dan mengisi controller
-    FirebaseFirestore.instance.collection('tanaman').doc(widget.docId).get().then((snapshot) {
+    FirebaseFirestore.instance
+        .collection('tanaman')
+        .doc(widget.docId)
+        .get()
+        .then((snapshot) {
       _namaTanamanController.text = snapshot['nama_tanaman'];
       _deskripsiController.text = snapshot['deskripsi'];
+      selectedJenisTanamanId = snapshot['id_jenis_tanaman']; // ID jenis tanaman
       setState(() {
-        _imageUrl = snapshot['gambar']; // Menyimpan URL gambar dari Firestore
+        _imageUrl = snapshot['gambar']; // URL gambar dari Firestore
       });
     });
   }
@@ -62,24 +70,50 @@ class _AdminEditTanamanPageState extends State<AdminEditTanamanPage> {
   }
 
   // Fungsi untuk memperbarui data tanaman di Firestore
-  Future<void> updateTanaman() async {
-    // Jika gambar baru dipilih, upload dulu gambar tersebut
+  // Fungsi untuk memperbarui data tanaman di Firestore
+// Fungsi untuk memperbarui data tanaman di Firestore
+Future<void> updateTanaman() async {
+  try {
+    // Jika gambar baru dipilih, unggah dulu gambar tersebut
     if (_imageFile != null) {
       await _uploadImageToFirebase();
     }
 
-    // Memperbarui data di Firestore, termasuk URL gambar jika diperbarui
-    await FirebaseFirestore.instance.collection('tanaman').doc(widget.docId).update({
+    // Memperbarui data tanaman di Firestore
+    await FirebaseFirestore.instance
+        .collection('tanaman')
+        .doc(widget.docId)
+        .update({
       'nama_tanaman': _namaTanamanController.text,
       'deskripsi': _deskripsiController.text,
-      'gambar': _imageUrl, // URL gambar yang diperbarui atau yang sudah ada
+      'gambar': _imageUrl,
+      'id_jenis_tanaman': selectedJenisTanamanId,
     });
 
+    setState(() {
+      _isUpdated = true; // Set flag untuk menunjukkan pembaruan berhasil
+    });
+
+    // Tampilkan alert berhasil hanya jika pembaruan berhasil
+    if (_isUpdated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Data tanaman berhasil diperbarui')),
+      );
+    }
+
+    // Tunggu sejenak sebelum kembali
+    Future.delayed(Duration(seconds: 1), () {
+      Navigator.of(context).pop();
+    });
+  } catch (e) {
+    print("Error updating tanaman: $e");
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Data tanaman berhasil diperbarui')),
+      SnackBar(content: Text('Gagal memperbarui data tanaman')),
     );
-    Navigator.of(context).pop();
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +132,29 @@ class _AdminEditTanamanPageState extends State<AdminEditTanamanPage> {
             TextField(
               controller: _deskripsiController,
               decoration: InputDecoration(labelText: "Deskripsi"),
+            ),
+            SizedBox(height: 20),
+            Text("Pilih Jenis Tanaman"),
+            StreamBuilder(
+              stream: FirebaseFirestore.instance.collection('jenis_tanaman').snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) return CircularProgressIndicator();
+                return DropdownButton<String>(
+                  hint: Text("Pilih Jenis Tanaman"),
+                  value: selectedJenisTanamanId,
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedJenisTanamanId = newValue;
+                    });
+                  },
+                  items: snapshot.data!.docs.map((DocumentSnapshot document) {
+                    return DropdownMenuItem<String>(
+                      value: document.id, // ID dokumen sebagai nilai dropdown
+                      child: Text(document['title']), // Nama jenis tanaman ditampilkan
+                    );
+                  }).toList(),
+                );
+              },
             ),
             SizedBox(height: 20),
             _imageFile != null
