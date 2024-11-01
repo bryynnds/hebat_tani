@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/login.dart';
 
 class AdminProfilePage extends StatelessWidget {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> logout(BuildContext context) async {
   await FirebaseAuth.instance.signOut();

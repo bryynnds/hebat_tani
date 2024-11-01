@@ -19,10 +19,10 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   bool _isTermsAccepted = false;
 
   void _register() async {
@@ -48,6 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             .collection('users')
             .doc(userCredential.user!.uid)
             .set({
+          'username': usernameController.text, // Simpan username
           'email': emailController.text,
           'role': 'user', // Atur peran pengguna
         });
@@ -111,6 +112,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 'Silahkan isi data akun baru anda',
                 style: TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
               ),
               const SizedBox(height: 20),
               TextField(

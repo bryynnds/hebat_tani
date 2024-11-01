@@ -39,10 +39,21 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   void _login() async {
-    try {
+  try {
+    // Cari pengguna berdasarkan username di Firestore
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('username', isEqualTo: usernameController.text)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      // Ambil email dari data pengguna yang ditemukan
+      String email = querySnapshot.docs.first['email'];
+
+      // Lakukan login dengan email yang ditemukan
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
-        email: usernameController.text,
+        email: email,
         password: passwordController.text,
       );
 
@@ -68,15 +79,24 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       }
-    } catch (e) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login gagal: $e'),
+        const SnackBar(
+          content: Text('Username tidak ditemukan.'),
           backgroundColor: Colors.red,
         ),
       );
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Login gagal: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
+
 
   void _signIn() {
     Navigator.push(
@@ -119,9 +139,10 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: usernameController,
                 decoration: const InputDecoration(
-                  labelText: 'Email',
+                  labelText: 'Username',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
+                  prefixIcon:
+                      Icon(Icons.person), // Ikon bisa diubah sesuai kebutuhan
                 ),
               ),
               const SizedBox(height: 20),
