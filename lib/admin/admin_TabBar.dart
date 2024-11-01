@@ -2,18 +2,7 @@ import 'package:flutter/material.dart';
 import 'artikel_beranda/admin_beranda.dart';
 import 'jenis_tanaman/admin_jenistanaman.dart';
 import 'detail_tanaman/admin_detailtanaman.dart';
-
-class TanamanInfo {
-  final String title;
-  final String description;
-  final String imagePath;
-
-  TanamanInfo({
-    required this.title,
-    required this.description,
-    required this.imagePath,
-  });
-}
+import 'profil/admin_profil.dart';
 
 class AdminTabBar extends StatefulWidget {
   @override
@@ -27,7 +16,7 @@ class _AdminTabBarState extends State<AdminTabBar>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -45,6 +34,7 @@ class _AdminTabBarState extends State<AdminTabBar>
             AdminBerandaPage(),
             AdminJenistanaman(),
             AdminInformasiTanamanPage(),
+            AdminProfilePage()
           ],
         ),
         bottomNavigationBar: SizedBox(
@@ -62,6 +52,7 @@ class _AdminTabBarState extends State<AdminTabBar>
                 Tab(icon: Icon(Icons.home)),
                 Tab(icon: Icon(Icons.grass)),
                 Tab(icon: Icon(Icons.grass_rounded)),
+                Tab(icon: Icon(Icons.person),)
               ],
             ),
           ),
