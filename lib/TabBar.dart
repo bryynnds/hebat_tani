@@ -70,6 +70,8 @@ class _TabBarPageState extends State<TabBarPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 10.0,
         backgroundColor: const Color.fromARGB(255, 46, 125, 50),
         title: Padding(

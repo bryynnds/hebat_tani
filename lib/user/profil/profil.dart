@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'ubah_profil.dart';
 import 'notifikasi.dart';
@@ -27,14 +26,14 @@ Future<void> logout(BuildContext context) async {
     ),
   );
   Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (context) => LoginPage()),
+    MaterialPageRoute(builder: (context) => LoginScreen()),
   );
 }
 
 class _ProfilState extends State<Profil> {
   String userName = 'Nama Pengguna';
   String userEmail = 'email@example.com';
-  String profileImageUrl = '';
+  String profileImageUrl = 'https://example.com/default_profile.jpg'; // Default URL
 
   @override
   void initState() {
@@ -54,8 +53,8 @@ class _ProfilState extends State<Profil> {
         setState(() {
           userName = userDoc['username'] ?? 'Nama Pengguna';
           userEmail = user.email ?? 'email@example.com';
-          profileImageUrl = userDoc['foto_profil'] ??
-              'https://example.com/default_profile.jpg'; // URL default jika belum ada
+          // Set profileImageUrl only if it exists
+          profileImageUrl = userDoc['foto_profil'] ?? profileImageUrl; // Use default if not available
         });
       }
     }

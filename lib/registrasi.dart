@@ -26,64 +26,66 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isTermsAccepted = false;
 
   void _register() async {
-    if (!_isTermsAccepted) {
+  if (!_isTermsAccepted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Anda harus menyetujui syarat dan ketentuan!'),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } else if (passwordController.text == confirmPasswordController.text) {
+    try {
+      // Mendaftar pengguna baru
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
+      // Tambahkan data pengguna ke Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'username': usernameController.text, // Simpan username
+        'email': emailController.text,
+        'role': 'user', // Atur peran pengguna
+        'foto_profil': '', // Kolom foto_profil kosong
+      });
+
+      // Log jika berhasil menambahkan data
+      print('Pengguna berhasil ditambahkan ke Firestore dengan ID: ${userCredential.user!.uid}');
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Anda harus menyetujui syarat dan ketentuan!'),
+          content: Text('Akun berhasil dibuat!'),
           duration: Duration(seconds: 2),
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.green,
         ),
       );
-    } else if (passwordController.text == confirmPasswordController.text) {
-      try {
-        // Mendaftar pengguna baru
-        UserCredential userCredential = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-          email: emailController.text,
-          password: passwordController.text,
-        );
-
-        // Tambahkan data pengguna ke Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .set({
-          'username': usernameController.text, // Simpan username
-          'email': emailController.text,
-          'role': 'user', // Atur peran pengguna
-        });
-
-        // Log jika berhasil menambahkan data
-        print('Pengguna berhasil ditambahkan ke Firestore dengan ID: ${userCredential.user!.uid}');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Akun berhasil dibuat!'),
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pushReplacementNamed(context, '/login');
-      } catch (e) {
-        // Log error
-        print('Error saat membuat akun: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } else {
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      // Log error
+      print('Error saat membuat akun: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password tidak cocok!'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text('Error: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Password tidak cocok!'),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
+
 
   void _goToLogin() {
     Navigator.pushReplacementNamed(context, '/login');

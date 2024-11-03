@@ -56,6 +56,7 @@ class _AdminInformasiTanamanPageState extends State<AdminInformasiTanamanPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: const Color.fromARGB(255, 46, 125, 50),
         title: const Text(

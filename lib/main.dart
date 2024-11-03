@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      initialRoute: '/login',
       title: 'Hebatani',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 0, 0, 0)),
@@ -25,6 +26,9 @@ class MyApp extends StatelessWidget {
       ),
       home: const LoginPage(),
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/login' : (context) => LoginPage()
+      },
     );
   }
 }

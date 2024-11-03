@@ -14,7 +14,7 @@ class AdminProfilePage extends StatelessWidget {
     ),
   );
   Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (context) => LoginPage()),
+    MaterialPageRoute(builder: (context) => LoginScreen()),
   );
 }
 
@@ -48,6 +48,7 @@ Future<void> _confirmLogout(BuildContext context) async {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: const Color.fromARGB(255, 46, 125, 50),
         title: const Text(
