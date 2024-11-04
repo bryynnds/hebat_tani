@@ -76,6 +76,7 @@ class _AdminTambahArtikelPageState extends State<AdminTambahArtikelPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Artikel berhasil ditambahkan')),
         );
+        Navigator.pop(context);
 
         // Reset input setelah artikel ditambahkan
         judulController.clear();

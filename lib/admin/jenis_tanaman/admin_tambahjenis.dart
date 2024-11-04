@@ -12,26 +12,26 @@ class AdminTambahJenisTanamanPage extends StatefulWidget {
 class _AdminTambahJenisTanamanPageState extends State<AdminTambahJenisTanamanPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  String? _imagePath;
+  File? _imageFile;
 
   Future<void> pickImage() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        _imagePath = pickedFile.path;
+        _imageFile = File(pickedFile.path);
       });
     }
   }
 
   Future<void> addTanaman() async {
-    if (_imagePath == null) {
+    if (_imageFile == null) {
       print("Gambar belum dipilih");
       return;
     }
 
-    String fileName = _imagePath!.split('/').last;
-    Reference storageRef = FirebaseStorage.instance.ref().child('tanaman_images/$fileName');
-    await storageRef.putFile(File(_imagePath!));
+    String fileName = 'tanaman_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
+    await storageRef.putFile(_imageFile!);
     String downloadUrl = await storageRef.getDownloadURL();
 
     await FirebaseFirestore.instance.collection('jenis_tanaman').add({
@@ -56,35 +56,56 @@ class _AdminTambahJenisTanamanPageState extends State<AdminTambahJenisTanamanPag
         title: const Text(
           'Tambah Jenis Tanaman',
           style: TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w300,
-              color: Colors.white),
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w300,
+            color: Colors.white,
+          ),
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _titleController,
-              decoration: InputDecoration(labelText: "Nama Jenis Tanaman"),
+              decoration: const InputDecoration(
+                labelText: 'Judul',
+                border: OutlineInputBorder(),
+              ),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
-              decoration: InputDecoration(labelText: "Deskripsi"),
+              decoration: const InputDecoration(
+                labelText: 'Deskripsi',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
             ),
-            SizedBox(height: 10),
-            _imagePath != null
-                ? Image.file(File(_imagePath!), height: 100, width: 100)
-                : Text("Tidak ada gambar yang dipilih"),
-            ElevatedButton(
-              onPressed: pickImage,
-              child: Text("Pilih Gambar"),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: pickImage,
+              child: _imageFile == null
+                  ? Container(
+                      height: 150,
+                      width: double.infinity,
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.add_a_photo, color: Colors.grey, size: 40),
+                    )
+                  : Image.file(
+                      _imageFile!,
+                      height: 150,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: addTanaman,
-              child: Text("Simpan"),
+            const SizedBox(height: 32),
+            Center(
+              child: ElevatedButton(
+                onPressed: addTanaman,
+                child: const Text('Simpan'),
+              ),
             ),
           ],
         ),

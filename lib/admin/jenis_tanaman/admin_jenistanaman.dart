@@ -9,10 +9,13 @@ class AdminJenistanaman extends StatefulWidget {
 }
 
 class _AdminJenistanamanState extends State<AdminJenistanaman> {
+  final CollectionReference _jenisTanamanCollection =
+      FirebaseFirestore.instance.collection('jenis_tanaman');
+
   Future<void> deleteTanaman(String docId) async {
-    await FirebaseFirestore.instance.collection('jenis_tanaman').doc(docId).delete();
+    await _jenisTanamanCollection.doc(docId).delete();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Data berhasil dihapus')),
+      const SnackBar(content: Text('Data berhasil dihapus')),
     );
   }
 
@@ -21,17 +24,17 @@ class _AdminJenistanamanState extends State<AdminJenistanaman> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Konfirmasi Hapus"),
-          content: Text("Apakah Anda yakin ingin menghapus data ini?"),
+          title: const Text("Konfirmasi Hapus"),
+          content: const Text("Apakah Anda yakin ingin menghapus data ini?"),
           actions: [
             TextButton(
-              child: Text("Batal"),
+              child: const Text("Batal"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text("Hapus"),
+              child: const Text("Hapus"),
               onPressed: () {
                 Navigator.of(context).pop();
                 deleteTanaman(docId);
@@ -60,48 +63,105 @@ class _AdminJenistanamanState extends State<AdminJenistanaman> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AdminTambahJenisTanamanPage()),
+                MaterialPageRoute(
+                    builder: (context) => AdminTambahJenisTanamanPage()),
               );
             },
           ),
         ],
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('jenis_tanaman').snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return CircularProgressIndicator();
-          return ListView(
-            children: snapshot.data!.docs.map((doc) {
-              return ListTile(
-                title: Text(doc['title']),
-                subtitle: Text(doc['description']),
-                leading: Image.network(doc['imagePath'], width: 50, height: 50),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AdminEditJenisTanamanPage(docId: doc.id),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _jenisTanamanCollection.snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('Tidak ada jenis tanaman.'));
+          }
+
+          final tanaman = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: tanaman.length,
+            itemBuilder: (context, index) {
+              final doc = tanaman[index];
+              final String id = doc.id;
+              final String title = doc['title'];
+              final String description = doc['description'];
+              final String imagePath = doc['imagePath'];
+
+              return Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8.0),
+                      Image.network(
+                        imagePath,
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(height: 8.0),
+                      Text(
+                        description,
+                        style: const TextStyle(fontSize: 14.0),
+                      ),
+                      const SizedBox(height: 16.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton.icon(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            label: const Text(
+                              'Hapus',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                            onPressed: () => confirmDelete(id),
                           ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () => confirmDelete(doc.id),
-                    ),
-                  ],
+                          const SizedBox(width: 8.0),
+                          TextButton.icon(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            label: const Text(
+                              'Edit',
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AdminEditJenisTanamanPage(docId: id),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               );
-            }).toList(),
+            },
           );
         },
       ),

@@ -9,7 +9,6 @@ class AdminInformasiTanamanPage extends StatefulWidget {
 }
 
 class _AdminInformasiTanamanPageState extends State<AdminInformasiTanamanPage> {
-  // Fungsi untuk menghapus data tanaman dari Firebase
   Future<void> deleteTanaman(String docId) async {
     await FirebaseFirestore.instance.collection('tanaman').doc(docId).delete();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -17,7 +16,6 @@ class _AdminInformasiTanamanPageState extends State<AdminInformasiTanamanPage> {
     );
   }
 
-  // Fungsi untuk menampilkan konfirmasi sebelum menghapus data
   void confirmDelete(String docId) {
     showDialog(
       context: context,
@@ -45,7 +43,6 @@ class _AdminInformasiTanamanPageState extends State<AdminInformasiTanamanPage> {
     );
   }
 
-  // Fungsi untuk mengambil nama jenis tanaman berdasarkan ID
   Future<String> fetchJenisTanaman(String jenisTanamanId) async {
     final doc = await FirebaseFirestore.instance.collection('jenis_tanaman').doc(jenisTanamanId).get();
     return doc.exists ? doc['title'] : 'Jenis tidak ditemukan';
@@ -83,34 +80,74 @@ class _AdminInformasiTanamanPageState extends State<AdminInformasiTanamanPage> {
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
           return ListView(
+            padding: const EdgeInsets.all(16.0),
             children: snapshot.data!.docs.map((doc) {
               return FutureBuilder(
                 future: fetchJenisTanaman(doc['id_jenis_tanaman']),
                 builder: (context, AsyncSnapshot<String> jenisSnapshot) {
                   if (!jenisSnapshot.hasData) return CircularProgressIndicator();
-                  return ListTile(
-                    title: Text(doc['nama_tanaman']),
-                    subtitle: Text('${jenisSnapshot.data}'),
-                    leading: Image.network(doc['gambar'], width: 50, height: 50),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AdminEditTanamanPage(docId: doc.id),
+                  return Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            doc['nama_tanaman'],
+                            style: const TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8.0),
+                          Image.network(
+                            doc['gambar'],
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                          const SizedBox(height: 8.0),
+                          Text(
+                            jenisSnapshot.data ?? 'Jenis tidak ditemukan',
+                            style: const TextStyle(fontSize: 14.0),
+                          ),
+                          const SizedBox(height: 16.0),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton.icon(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                label: const Text(
+                                  'Hapus',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                                onPressed: () => confirmDelete(doc.id),
                               ),
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () => confirmDelete(doc.id),
-                        ),
-                      ],
+                              const SizedBox(width: 8.0),
+                              TextButton.icon(
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                label: const Text(
+                                  'Edit',
+                                  style: TextStyle(color: Colors.blue),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AdminEditTanamanPage(docId: doc.id),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },

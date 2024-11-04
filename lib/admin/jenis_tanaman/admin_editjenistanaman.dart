@@ -14,64 +14,78 @@ class AdminEditJenisTanamanPage extends StatefulWidget {
 }
 
 class _AdminEditJenisTanamanPageState extends State<AdminEditJenisTanamanPage> {
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  String? _imagePath;
-  String? _initialImageUrl;
+  final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _deskripsiController = TextEditingController();
+  File? _selectedImage;
+  bool _isUploading = false;
+  String? _currentImageUrl;
 
   @override
   void initState() {
     super.initState();
-    _loadTanamanData();
-  }
-
-  Future<void> _loadTanamanData() async {
-    DocumentSnapshot doc = await FirebaseFirestore.instance.collection('jenis_tanaman').doc(widget.docId).get();
-    setState(() {
-      _titleController.text = doc['title'];
-      _descriptionController.text = doc['description'];
-      _initialImageUrl = doc['imagePath'];
+    FirebaseFirestore.instance
+        .collection('jenis_tanaman')
+        .doc(widget.docId)
+        .get()
+        .then((snapshot) {
+      _namaController.text = snapshot['title'];
+      _deskripsiController.text = snapshot['description'];
+      setState(() {
+        _currentImageUrl = snapshot['imagePath'];
+      });
     });
   }
 
-  Future<void> pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
+  Future<void> _pickImage() async {
+    final pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedImage != null) {
       setState(() {
-        _imagePath = pickedFile.path;
+        _selectedImage = File(pickedImage.path);
       });
     }
   }
 
-  Future<void> updateTanaman() async {
-  String imageUrl = _initialImageUrl ?? '';
-  
-  // If a new image is selected, upload it
-  if (_imagePath != null) {
-    String fileName = _imagePath!.split('/').last;
-    Reference storageRef = FirebaseStorage.instance.ref().child('tanaman_images/$fileName');
-    await storageRef.putFile(File(_imagePath!));
-    imageUrl = await storageRef.getDownloadURL();
+  Future<String?> _uploadImage(File image, BuildContext context) async {
+    try {
+      final fileName = 'jenis_tanaman_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final storageRef = FirebaseStorage.instance.ref().child(fileName);
+      await storageRef.putFile(image);
+      return await storageRef.getDownloadURL();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengunggah gambar: $e')),
+      );
+      return null;
+    }
   }
 
-  // Update plant type data in Firestore
-  await FirebaseFirestore.instance.collection('jenis_tanaman').doc(widget.docId).update({
-    'title': _titleController.text,
-    'description': _descriptionController.text,
-    'imagePath': imageUrl,
-  });
+  Future<void> _updateJenisTanaman(BuildContext context) async {
+    if (_selectedImage != null) {
+      setState(() {
+        _isUploading = true;
+      });
+      _currentImageUrl = await _uploadImage(_selectedImage!, context);
+      setState(() {
+        _isUploading = false;
+      });
+    }
 
-  // Show success alert
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Data berhasil diperbarui')),
-  );
-
-  // Wait briefly before navigating back
-  Future.delayed(Duration(seconds: 1), () {
-    Navigator.of(context).pop();
-  });
-}
-
+    try {
+      await FirebaseFirestore.instance.collection('jenis_tanaman').doc(widget.docId).update({
+        'title': _namaController.text,
+        'description': _deskripsiController.text,
+        'imagePath': _currentImageUrl,
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Data jenis tanaman berhasil diperbarui')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memperbarui data jenis tanaman: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,37 +97,65 @@ class _AdminEditJenisTanamanPageState extends State<AdminEditJenisTanamanPage> {
         title: const Text(
           'Edit Jenis Tanaman',
           style: TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w300,
-              color: Colors.white),
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w300,
+            color: Colors.white,
+          ),
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: "Nama Jenis Tanaman"),
+              controller: _namaController,
+              decoration: const InputDecoration(
+                labelText: 'Nama Jenis Tanaman',
+                border: OutlineInputBorder(),
+              ),
             ),
+            const SizedBox(height: 16.0),
             TextField(
-              controller: _descriptionController,
-              decoration: InputDecoration(labelText: "Deskripsi"),
+              controller: _deskripsiController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Deskripsi',
+                border: OutlineInputBorder(),
+              ),
             ),
-            SizedBox(height: 10),
-            _imagePath != null
-                ? Image.file(File(_imagePath!), height: 100, width: 100)
-                : (_initialImageUrl != null
-                    ? Image.network(_initialImageUrl!, height: 100, width: 100)
-                    : Text("Tidak ada gambar yang dipilih")),
-            ElevatedButton(
-              onPressed: pickImage,
-              child: Text("Pilih Gambar"),
+            const SizedBox(height: 16.0),
+            GestureDetector(
+              onTap: _pickImage,
+              child: _selectedImage == null
+                  ? _currentImageUrl == null
+                      ? Container(
+                          height: 150,
+                          width: double.infinity,
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.add_a_photo, color: Colors.grey, size: 40),
+                        )
+                      : Image.network(
+                          _currentImageUrl!,
+                          height: 150,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                  : Image.file(
+                      _selectedImage!,
+                      height: 150,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: updateTanaman,
-              child: Text("Simpan Perubahan"),
+            const SizedBox(height: 32.0),
+            Center(
+              child: ElevatedButton(
+                onPressed: _isUploading ? null : () => _updateJenisTanaman(context),
+                child: _isUploading
+                    ? const CircularProgressIndicator()
+                    : const Text('Simpan Perubahan'),
+              ),
             ),
           ],
         ),

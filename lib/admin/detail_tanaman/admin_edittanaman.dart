@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class AdminEditTanamanPage extends StatefulWidget {
-  final String docId; // ID dokumen Firebase untuk data tanaman
+  final String docId;
 
   AdminEditTanamanPage({required this.docId});
 
@@ -14,20 +14,16 @@ class AdminEditTanamanPage extends StatefulWidget {
 }
 
 class _AdminEditTanamanPageState extends State<AdminEditTanamanPage> {
-  bool _isUpdated = false; // Flag untuk melacak jika pembaruan dilakukan
-
   final TextEditingController _namaTanamanController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
-  File? _imageFile;
-  String? _imageUrl; // URL gambar untuk disimpan di Firestore
-  String? selectedJenisTanamanId; // Menyimpan ID jenis tanaman yang dipilih
-
-  final ImagePicker _picker = ImagePicker();
+  File? _selectedImage;
+  bool _isUploading = false;
+  String? _currentImageUrl;
+  String? selectedJenisTanamanId;
 
   @override
   void initState() {
     super.initState();
-    // Mendapatkan data tanaman dari Firestore dan mengisi controller
     FirebaseFirestore.instance
         .collection('tanaman')
         .doc(widget.docId)
@@ -35,85 +31,64 @@ class _AdminEditTanamanPageState extends State<AdminEditTanamanPage> {
         .then((snapshot) {
       _namaTanamanController.text = snapshot['nama_tanaman'];
       _deskripsiController.text = snapshot['deskripsi'];
-      selectedJenisTanamanId = snapshot['id_jenis_tanaman']; // ID jenis tanaman
+      selectedJenisTanamanId = snapshot['id_jenis_tanaman'];
       setState(() {
-        _imageUrl = snapshot['gambar']; // URL gambar dari Firestore
+        _currentImageUrl = snapshot['gambar'];
       });
     });
   }
 
-  // Fungsi untuk memilih gambar dari galeri
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
+    final pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedImage != null) {
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _selectedImage = File(pickedImage.path);
       });
     }
   }
 
-  // Fungsi untuk mengunggah gambar ke Firebase Storage
-  Future<void> _uploadImageToFirebase() async {
-    if (_imageFile == null) return;
+  Future<String?> _uploadImage(File image, BuildContext context) async {
+    try {
+      final fileName = 'tanaman_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final storageRef = FirebaseStorage.instance.ref().child(fileName);
+      await storageRef.putFile(image);
+      return await storageRef.getDownloadURL();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengunggah gambar: $e')),
+      );
+      return null;
+    }
+  }
+
+  Future<void> _updateTanaman(BuildContext context) async {
+    if (_selectedImage != null) {
+      setState(() {
+        _isUploading = true;
+      });
+      _currentImageUrl = await _uploadImage(_selectedImage!, context);
+      setState(() {
+        _isUploading = false;
+      });
+    }
 
     try {
-      String fileName = 'tanaman_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      Reference ref = FirebaseStorage.instance.ref().child(fileName);
-      UploadTask uploadTask = ref.putFile(_imageFile!);
-      TaskSnapshot snapshot = await uploadTask;
-
-      // Dapatkan URL gambar setelah berhasil diunggah
-      _imageUrl = await snapshot.ref.getDownloadURL();
-    } catch (e) {
-      print("Error uploading image: $e");
-    }
-  }
-
-  // Fungsi untuk memperbarui data tanaman di Firestore
-  // Fungsi untuk memperbarui data tanaman di Firestore
-// Fungsi untuk memperbarui data tanaman di Firestore
-Future<void> updateTanaman() async {
-  try {
-    // Jika gambar baru dipilih, unggah dulu gambar tersebut
-    if (_imageFile != null) {
-      await _uploadImageToFirebase();
-    }
-
-    // Memperbarui data tanaman di Firestore
-    await FirebaseFirestore.instance
-        .collection('tanaman')
-        .doc(widget.docId)
-        .update({
-      'nama_tanaman': _namaTanamanController.text,
-      'deskripsi': _deskripsiController.text,
-      'gambar': _imageUrl,
-      'id_jenis_tanaman': selectedJenisTanamanId,
-    });
-
-    setState(() {
-      _isUpdated = true; // Set flag untuk menunjukkan pembaruan berhasil
-    });
-
-    // Tampilkan alert berhasil hanya jika pembaruan berhasil
-    if (_isUpdated) {
+      await FirebaseFirestore.instance.collection('tanaman').doc(widget.docId).update({
+        'nama_tanaman': _namaTanamanController.text,
+        'deskripsi': _deskripsiController.text,
+        'gambar': _currentImageUrl,
+        'id_jenis_tanaman': selectedJenisTanamanId,
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Data tanaman berhasil diperbarui')),
+        const SnackBar(content: Text('Data tanaman berhasil diperbarui')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memperbarui data tanaman: $e')),
       );
     }
-
-    // Tunggu sejenak sebelum kembali
-    Future.delayed(Duration(seconds: 1), () {
-      Navigator.of(context).pop();
-    });
-  } catch (e) {
-    print("Error updating tanaman: $e");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Gagal memperbarui data tanaman')),
-    );
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -125,60 +100,90 @@ Future<void> updateTanaman() async {
         title: const Text(
           'Edit Tanaman',
           style: TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w300,
-              color: Colors.white),
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w300,
+            color: Colors.white,
+          ),
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _namaTanamanController,
-              decoration: InputDecoration(labelText: "Nama Tanaman"),
+              decoration: const InputDecoration(
+                labelText: 'Nama Tanaman',
+                border: OutlineInputBorder(),
+              ),
             ),
+            const SizedBox(height: 16.0),
             TextField(
               controller: _deskripsiController,
-              decoration: InputDecoration(labelText: "Deskripsi"),
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Deskripsi',
+                border: OutlineInputBorder(),
+              ),
             ),
-            SizedBox(height: 20),
-            Text("Pilih Jenis Tanaman"),
+            const SizedBox(height: 16.0),
             StreamBuilder(
               stream: FirebaseFirestore.instance.collection('jenis_tanaman').snapshots(),
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (!snapshot.hasData) return CircularProgressIndicator();
-                return DropdownButton<String>(
-                  hint: Text("Pilih Jenis Tanaman"),
+                if (!snapshot.hasData) return const CircularProgressIndicator();
+                return DropdownButtonFormField<String>(
                   value: selectedJenisTanamanId,
+                  hint: const Text("Pilih Jenis Tanaman"),
                   onChanged: (newValue) {
                     setState(() {
                       selectedJenisTanamanId = newValue;
                     });
                   },
-                  items: snapshot.data!.docs.map((DocumentSnapshot document) {
+                  items: snapshot.data!.docs.map((document) {
                     return DropdownMenuItem<String>(
-                      value: document.id, // ID dokumen sebagai nilai dropdown
-                      child: Text(document['title']), // Nama jenis tanaman ditampilkan
+                      value: document.id,
+                      child: Text(document['title']),
                     );
                   }).toList(),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
                 );
               },
             ),
-            SizedBox(height: 20),
-            _imageFile != null
-                ? Image.file(_imageFile!, width: 100, height: 100) // Gambar baru yang dipilih
-                : _imageUrl != null
-                    ? Image.network(_imageUrl!, width: 100, height: 100) // Gambar yang ada di Firebase
-                    : Text("Belum ada gambar yang dipilih"),
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: Text("Pilih Gambar"),
+            const SizedBox(height: 16.0),
+            GestureDetector(
+              onTap: _pickImage,
+              child: _selectedImage == null
+                  ? _currentImageUrl == null
+                      ? Container(
+                          height: 150,
+                          width: double.infinity,
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.add_a_photo, color: Colors.grey, size: 40),
+                        )
+                      : Image.network(
+                          _currentImageUrl!,
+                          height: 150,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                  : Image.file(
+                      _selectedImage!,
+                      height: 150,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: updateTanaman,
-              child: Text("Simpan Perubahan"),
+            const SizedBox(height: 32.0),
+            Center(
+              child: ElevatedButton(
+                onPressed: _isUploading ? null : () => _updateTanaman(context),
+                child: _isUploading
+                    ? const CircularProgressIndicator()
+                    : const Text('Simpan Perubahan'),
+              ),
             ),
           ],
         ),
