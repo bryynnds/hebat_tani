@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class KalenderPengingatPage extends StatefulWidget {
   const KalenderPengingatPage({super.key});
 
@@ -21,13 +20,15 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
   }
 
   Future<void> _fetchEvents() async {
-    final snapshot = await FirebaseFirestore.instance.collection('jadwal').get();
+    final snapshot =
+        await FirebaseFirestore.instance.collection('jadwal').get();
     final Map<DateTime, List<Map<String, dynamic>>> fetchedEvents = {};
 
     for (var doc in snapshot.docs) {
       final data = doc.data();
-      DateTime startDate = (data['tanggalMulai'] as Timestamp).toDate();
-      final formattedDate = DateTime(startDate.year, startDate.month, startDate.day);
+      DateTime eventDate = (data['tanggal'] as Timestamp).toDate();
+      final formattedDate =
+          DateTime(eventDate.year, eventDate.month, eventDate.day);
 
       if (fetchedEvents[formattedDate] == null) {
         fetchedEvents[formattedDate] = [];
@@ -36,7 +37,7 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
         'title': data['judul'],
         'kegiatan': data['kegiatan'],
         'keterangan': data['keterangan'],
-        'endDate': (data['tanggalSelesai'] as Timestamp).toDate(),
+        'color': Color(data['color']),
       });
     }
 
@@ -47,33 +48,52 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
 
   List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
     final formattedDay = DateTime(day.year, day.month, day.day);
-    return events[formattedDay] ?? [];
+    return events[formattedDay] ?? <Map<String, dynamic>>[];
   }
 
   void _showEventsForDay(BuildContext context, DateTime day) {
-    final selectedEvents = _getEventsForDay(day);
-    if (selectedEvents.isEmpty) return;
+  final selectedEvents = _getEventsForDay(day);
+  if (selectedEvents.isEmpty) return;
 
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: selectedEvents.map((event) {
-              return ListTile(
-                title: Text(event['title']),
-                subtitle: Text(
-                  "Kegiatan: ${event['kegiatan']}\nKeterangan: ${event['keterangan']}",
-                ),
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-  }
+  // Ambil warna dari event pertama (Anda bisa menyesuaikan jika ingin mengambil warna berbeda)
+  final eventColor = selectedEvents.first['color'] ?? Colors.grey;
+
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Column(
+              children: selectedEvents.map((event) {
+                return ListTile(
+                  contentPadding: EdgeInsets.zero, // Menghilangkan padding default
+                  leading: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: eventColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  title: Text(event['title']),
+                  subtitle: Text(
+                    "Kegiatan: ${event['kegiatan']}\nKeterangan: ${event['keterangan']}",
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -109,12 +129,32 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
                 });
                 _showEventsForDay(context, selectedDay);
               },
-              eventLoader: _getEventsForDay,
+              eventLoader: (day) => _getEventsForDay(day),
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, day, events) {
+                  if (events != null &&
+                      events.isNotEmpty &&
+                      events.first is Map) {
+                    final event = events.first as Map<String, dynamic>;
+                    final color = (event['color'] as Color?) ??
+                        Colors.grey; // Gunakan warna default jika 'color' null
+                    return Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    );
+                  }
+                  return null;
+                },
+              ),
             ),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.  pushNamed(context, '/jadwal_kegiatan'); // Navigasi ke halaman jadwal kegiatan
+              Navigator.pushNamed(context, '/jadwal_kegiatan');
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -124,8 +164,11 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/tambah_jadwal'); // Navigasi ke tambah jadwal
+        onPressed: () async {
+          final result = await Navigator.pushNamed(context, '/tambah_jadwal');
+          if (result == true) {
+            await _fetchEvents(); // Memperbarui kalender setelah menambah jadwal
+          }
         },
         child: const Icon(Icons.add),
       ),
