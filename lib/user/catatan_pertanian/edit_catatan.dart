@@ -36,9 +36,9 @@ class EditCatatanPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Judul Catatan')),
+            TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Judul Catatan', border: OutlineInputBorder())),
             const SizedBox(height: 16.0),
-            TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Deskripsi Catatan'), maxLines: 5),
+            TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Deskripsi Catatan', border: OutlineInputBorder()), maxLines: 5),
             const Spacer(),
             ElevatedButton(
               onPressed: () {

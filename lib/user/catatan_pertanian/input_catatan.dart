@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class InputCatatanPage extends StatelessWidget {
   final TextEditingController titleController = TextEditingController();
@@ -8,11 +9,20 @@ class InputCatatanPage extends StatelessWidget {
   InputCatatanPage({super.key});
 
   Future<void> addNote() async {
-    await FirebaseFirestore.instance.collection('catatan').add({
-      'judul': titleController.text,
-      'deskripsi': descriptionController.text,
-      'tanggal': DateTime.now().toString(),
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      print(
+          "User ID: ${user.uid}"); // Tambahkan log ini untuk memastikan ID pengguna
+
+      await FirebaseFirestore.instance.collection('catatan').add({
+        'judul': titleController.text,
+        'deskripsi': descriptionController.text,
+        'tanggal': DateTime.now().toString(),
+        'userId': user.uid, // Tambahkan userId di sini
+      });
+    } else {
+      print("User belum login");
+    }
   }
 
   @override
@@ -34,9 +44,17 @@ class InputCatatanPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Judul Catatan')),
+            TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                    labelText: 'Judul Catatan', border: OutlineInputBorder())),
             const SizedBox(height: 16.0),
-            TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Deskripsi Catatan'), maxLines: 5),
+            TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(
+                    labelText: 'Deskripsi Catatan',
+                    border: OutlineInputBorder()),
+                maxLines: 5),
             const Spacer(),
             ElevatedButton(
               onPressed: () {

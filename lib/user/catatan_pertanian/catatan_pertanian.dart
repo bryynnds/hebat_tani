@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'input_catatan.dart';
 import 'edit_catatan.dart';
 
@@ -37,10 +38,15 @@ class CatatanPertanianPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('catatan').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('catatan')
+            .where('userId', isEqualTo: user?.uid)  // Filter berdasarkan user ID
+            .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
@@ -52,7 +58,7 @@ class CatatanPertanianPage extends StatelessWidget {
                 description: doc['deskripsi'],
                 date: doc['tanggal'],
                 onTitleTap: () => _onTitleTap(context, doc),
-                onDelete: () => deleteNoteConfirm(context, doc.id), // Memanggil fungsi konfirmasi sebelum hapus
+                onDelete: () => deleteNoteConfirm(context, doc.id),
               );
             }).toList(),
           );
@@ -66,6 +72,7 @@ class CatatanPertanianPage extends StatelessWidget {
       ),
     );
   }
+
 
   void _onTitleTap(BuildContext context, QueryDocumentSnapshot doc) {
     Navigator.push(
