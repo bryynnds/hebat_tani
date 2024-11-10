@@ -19,16 +19,20 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
     _fetchEvents();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _fetchEvents();
+  }
+
   Future<void> _fetchEvents() async {
-    final snapshot =
-        await FirebaseFirestore.instance.collection('jadwal').get();
+    final snapshot = await FirebaseFirestore.instance.collection('jadwal').get();
     final Map<DateTime, List<Map<String, dynamic>>> fetchedEvents = {};
 
     for (var doc in snapshot.docs) {
       final data = doc.data();
       DateTime eventDate = (data['tanggal'] as Timestamp).toDate();
-      final formattedDate =
-          DateTime(eventDate.year, eventDate.month, eventDate.day);
+      final formattedDate = DateTime(eventDate.year, eventDate.month, eventDate.day);
 
       if (fetchedEvents[formattedDate] == null) {
         fetchedEvents[formattedDate] = [];
@@ -52,48 +56,45 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
   }
 
   void _showEventsForDay(BuildContext context, DateTime day) {
-  final selectedEvents = _getEventsForDay(day);
-  if (selectedEvents.isEmpty) return;
+    final selectedEvents = _getEventsForDay(day);
+    if (selectedEvents.isEmpty) return;
 
-  // Ambil warna dari event pertama (Anda bisa menyesuaikan jika ingin mengambil warna berbeda)
-  final eventColor = selectedEvents.first['color'] ?? Colors.grey;
+    final eventColor = selectedEvents.first['color'] ?? Colors.grey;
 
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Column(
-              children: selectedEvents.map((event) {
-                return ListTile(
-                  contentPadding: EdgeInsets.zero, // Menghilangkan padding default
-                  leading: Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: eventColor,
-                      shape: BoxShape.circle,
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Column(
+                children: selectedEvents.map((event) {
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: eventColor,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  title: Text(event['title']),
-                  subtitle: Text(
-                    "Kegiatan: ${event['kegiatan']}\nKeterangan: ${event['keterangan']}",
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-
+                    title: Text(event['title']),
+                    subtitle: Text(
+                      "Kegiatan: ${event['kegiatan']}\nKeterangan: ${event['keterangan']}",
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,8 +137,7 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
                       events.isNotEmpty &&
                       events.first is Map) {
                     final event = events.first as Map<String, dynamic>;
-                    final color = (event['color'] as Color?) ??
-                        Colors.grey; // Gunakan warna default jika 'color' null
+                    final color = (event['color'] as Color?) ?? Colors.grey;
                     return Container(
                       width: 10,
                       height: 10,
@@ -153,8 +153,11 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/jadwal_kegiatan');
+            onPressed: () async {
+              final result = await Navigator.pushNamed(context, '/jadwal_kegiatan');
+              if (result == true) {
+                await _fetchEvents();
+              }
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -167,7 +170,7 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
         onPressed: () async {
           final result = await Navigator.pushNamed(context, '/tambah_jadwal');
           if (result == true) {
-            await _fetchEvents(); // Memperbarui kalender setelah menambah jadwal
+            await _fetchEvents();
           }
         },
         child: const Icon(Icons.add),
