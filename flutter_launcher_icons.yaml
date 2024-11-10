@@ -1,6 +1,8 @@
 # flutter pub run flutter_launcher_icons
 flutter_launcher_icons:
   image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#FFFFFF"  # Tentukan warna latar belakang
+  adaptive_icon_foreground: "assets/images/logo.png"  # Ikon utama
 
   android: "launcher_icon"
   # image_path_android: "assets/icon/icon.png"
