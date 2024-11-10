@@ -26,66 +26,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isTermsAccepted = false;
 
   void _register() async {
-  if (!_isTermsAccepted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Anda harus menyetujui syarat dan ketentuan!'),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.red,
-      ),
-    );
-  } else if (passwordController.text == confirmPasswordController.text) {
-    try {
-      // Mendaftar pengguna baru
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
-
-      // Tambahkan data pengguna ke Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-        'username': usernameController.text, // Simpan username
-        'email': emailController.text,
-        'role': 'user', // Atur peran pengguna
-        'foto_profil': '', // Kolom foto_profil kosong
-      });
-
-      // Log jika berhasil menambahkan data
-      print('Pengguna berhasil ditambahkan ke Firestore dengan ID: ${userCredential.user!.uid}');
-
+    if (!_isTermsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Akun berhasil dibuat!'),
-          duration: Duration(seconds: 2),
-          backgroundColor: Colors.green,
+          content: Text('Anda harus menyetujui syarat dan ketentuan!'),
+          backgroundColor: Colors.red,
         ),
       );
-      Navigator.pushReplacementNamed(context, '/login');
-    } catch (e) {
-      // Log error
-      print('Error saat membuat akun: $e');
+      return;
+    }
+
+    if (passwordController.text == confirmPasswordController.text) {
+      try {
+        final usernameQuery = await FirebaseFirestore.instance
+            .collection('users')
+            .where('username', isEqualTo: usernameController.text)
+            .get();
+
+        if (usernameQuery.docs.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Username sudah digunakan, pilih yang lain.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
+        );
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'username': usernameController.text,
+          'email': emailController.text,
+          'role': 'user',
+          'foto_profil': '',
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Akun berhasil dibuat!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pushReplacementNamed(context, '/login');
+      } catch (e) {
+        print('Error saat membuat akun: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
+        const SnackBar(
+          content: Text('Password tidak cocok!'),
           backgroundColor: Colors.red,
         ),
       );
     }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Password tidak cocok!'),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
-}
-
 
   void _goToLogin() {
     Navigator.pushReplacementNamed(context, '/login');
@@ -172,7 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _register,
+                onPressed: _isTermsAccepted ? _register : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 51, 125, 53),
                   minimumSize: const Size(double.infinity, 50),

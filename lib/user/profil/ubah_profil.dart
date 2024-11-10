@@ -40,24 +40,40 @@ class _UbahProfilPageState extends State<UbahProfilPage> {
   User? user = FirebaseAuth.instance.currentUser;
   if (user != null) {
     try {
-      // Reautentikasi menggunakan kata sandi lama
+      // Re-authenticate user
       AuthCredential credential = EmailAuthProvider.credential(
         email: user.email!,
         password: _oldPasswordController.text,
       );
       await user.reauthenticateWithCredential(credential);
 
-      // Langkah 1: Perbarui email jika berubah
+      // Check if the new username is unique
+      final usernameQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('username', isEqualTo: _nameController.text)
+          .get();
+
+      if (usernameQuery.docs.isNotEmpty && usernameQuery.docs.first.id != user.uid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Username sudah digunakan, pilih yang lain.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Update email if changed
       if (_emailController.text.isNotEmpty && _emailController.text != user.email) {
         await user.updateEmail(_emailController.text);
       }
 
-      // Langkah 2: Perbarui kata sandi jika kata sandi baru diisi
+      // Update password if provided
       if (_newPasswordController.text.isNotEmpty) {
         await user.updatePassword(_newPasswordController.text);
       }
 
-      // Langkah 3: Perbarui data di Firestore (nama dan email)
+      // Update Firestore user data
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
         'username': _nameController.text,
         'email': _emailController.text,
@@ -66,7 +82,7 @@ class _UbahProfilPageState extends State<UbahProfilPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Profil berhasil diperbarui')),
       );
-      Navigator.pop(context); // Kembali ke halaman profil
+      Navigator.pop(context); // Back to profile page
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal memperbarui profil: $e')),
@@ -74,6 +90,7 @@ class _UbahProfilPageState extends State<UbahProfilPage> {
     }
   }
 }
+
 
 
   @override
