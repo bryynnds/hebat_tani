@@ -142,8 +142,7 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
               eventLoader: (day) => _getEventsForDay(day),
               calendarBuilders: CalendarBuilders(
                 markerBuilder: (context, day, events) {
-                  if (events != null &&
-                      events.isNotEmpty &&
+                  if (events.isNotEmpty &&
                       events.first is Map) {
                     final event = events.first as Map<String, dynamic>;
                     final color = (event['color'] as Color?) ?? Colors.grey;
