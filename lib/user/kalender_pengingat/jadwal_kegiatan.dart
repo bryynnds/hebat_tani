@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_jadwal.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class JadwalKegiatanPage extends StatelessWidget {
   const JadwalKegiatanPage({super.key});
@@ -59,7 +60,10 @@ class JadwalKegiatanPage extends StatelessWidget {
         ),
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('jadwal').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('jadwal')
+            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());

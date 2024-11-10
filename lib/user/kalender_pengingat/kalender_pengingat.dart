@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class KalenderPengingatPage extends StatefulWidget {
   const KalenderPengingatPage({super.key});
@@ -26,29 +28,36 @@ class _KalenderPengingatPageState extends State<KalenderPengingatPage> {
   }
 
   Future<void> _fetchEvents() async {
-    final snapshot = await FirebaseFirestore.instance.collection('jadwal').get();
-    final Map<DateTime, List<Map<String, dynamic>>> fetchedEvents = {};
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId == null) return;
 
-    for (var doc in snapshot.docs) {
-      final data = doc.data();
-      DateTime eventDate = (data['tanggal'] as Timestamp).toDate();
-      final formattedDate = DateTime(eventDate.year, eventDate.month, eventDate.day);
+  final snapshot = await FirebaseFirestore.instance
+      .collection('jadwal')
+      .where('userId', isEqualTo: userId)
+      .get();
 
-      if (fetchedEvents[formattedDate] == null) {
-        fetchedEvents[formattedDate] = [];
-      }
-      fetchedEvents[formattedDate]!.add({
-        'title': data['judul'],
-        'kegiatan': data['kegiatan'],
-        'keterangan': data['keterangan'],
-        'color': Color(data['color']),
-      });
+  final Map<DateTime, List<Map<String, dynamic>>> fetchedEvents = {};
+
+  for (var doc in snapshot.docs) {
+    final data = doc.data();
+    DateTime eventDate = (data['tanggal'] as Timestamp).toDate();
+    final formattedDate = DateTime(eventDate.year, eventDate.month, eventDate.day);
+
+    if (fetchedEvents[formattedDate] == null) {
+      fetchedEvents[formattedDate] = [];
     }
-
-    setState(() {
-      events = fetchedEvents;
+    fetchedEvents[formattedDate]!.add({
+      'title': data['judul'],
+      'kegiatan': data['kegiatan'],
+      'keterangan': data['keterangan'],
+      'color': Color(data['color']),
     });
   }
+
+  setState(() {
+    events = fetchedEvents;
+  });
+}
 
   List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
     final formattedDay = DateTime(day.year, day.month, day.day);

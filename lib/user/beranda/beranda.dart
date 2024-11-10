@@ -33,56 +33,56 @@ class _BerandaPageState extends State<BerandaPage> {
         child: Column(
           children: [
             // Card "Jadwal Yang akan datang" yang statis
-            GestureDetector(
-              onTap: () {
-                widget.onGoToKalender(); // Panggil fungsi ketika Card diklik
-              },
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                margin: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 2.0),
-                child: const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Jadwal Yang akan datang',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 15.0,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 33, 33, 33),
-                            ),
-                          ),
-                          SizedBox(height: 10.0),
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: Colors.grey,
-                              ),
-                              SizedBox(width: 20.0),
-                              Text(
-                                'Jadwal 1',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  color: Color.fromARGB(255, 33, 33, 33),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     widget.onGoToKalender(); // Panggil fungsi ketika Card diklik
+            //   },
+            //   child: Card(
+            //     elevation: 4,
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(8.0),
+            //     ),
+            //     margin: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 2.0),
+            //     child: const Padding(
+            //       padding: EdgeInsets.all(16.0),
+            //       child: Row(
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         children: [
+            //           Column(
+            //             crossAxisAlignment: CrossAxisAlignment.start,
+            //             children: [
+            //               Text(
+            //                 'Jadwal Yang akan datang',
+            //                 style: TextStyle(
+            //                   fontFamily: 'Poppins',
+            //                   fontSize: 15.0,
+            //                   fontWeight: FontWeight.bold,
+            //                   color: Color.fromARGB(255, 33, 33, 33),
+            //                 ),
+            //               ),
+            //               SizedBox(height: 10.0),
+            //               Row(
+            //                 children: [
+            //                   CircleAvatar(
+            //                     backgroundColor: Colors.grey,
+            //                   ),
+            //                   SizedBox(width: 20.0),
+            //                   Text(
+            //                     'Jadwal 1',
+            //                     style: TextStyle(
+            //                       fontFamily: 'Poppins',
+            //                       color: Color.fromARGB(255, 33, 33, 33),
+            //                     ),
+            //                   ),
+            //                 ],
+            //               ),
+            //             ],
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
 
             // ListView untuk artikel dari Firestore
             StreamBuilder<QuerySnapshot>(

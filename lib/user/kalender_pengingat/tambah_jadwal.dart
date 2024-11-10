@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TambahJadwalPage extends StatefulWidget {
   const TambahJadwalPage({super.key});
@@ -26,20 +27,22 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
   };
 
   Future<void> _simpanJadwal() async {
-    if (_kegiatan != null &&
-        _judulController.text.isNotEmpty &&
-        _tanggal != null) {
+  if (_kegiatan != null && _judulController.text.isNotEmpty && _tanggal != null) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId != null) {
       await FirebaseFirestore.instance.collection('jadwal').add({
         'kegiatan': _kegiatan,
         'judul': _judulController.text,
         'tanggal': Timestamp.fromDate(_tanggal!),
         'keterangan': _keteranganController.text,
-        'color': kegiatanColors[_kegiatan]
-            ?.value, // Menyimpan warna sebagai nilai integer
+        'color': kegiatanColors[_kegiatan]?.value,
+        'userId': userId, // Menyimpan userId
       });
-      Navigator.pop(context, true); // Mengirim sinyal sukses saat kembali
+      Navigator.pop(context, true);
     }
   }
+}
 
   Future<void> _pilihTanggal(BuildContext context) async {
     DateTime? picked = await showDatePicker(
