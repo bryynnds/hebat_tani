@@ -1,6 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.hebatani.app">
     <application
-        android:label="flutter_application_1"
+        android:label="Hebatani"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
