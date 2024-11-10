@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user/beranda/beranda.dart' as beranda;
 import 'user/catatan_pertanian/catatan_pertanian.dart' as catatan;
 import 'user/informasi_tanaman/informasi_tanaman.dart' as informasi;
 import 'user/kalender_pengingat/kalender_pengingat.dart' as kalender;
 import 'user/profil/profil.dart';
 
-// Tambahkan parameter ke constructor TabBarPage
 class TabBarPage extends StatefulWidget {
   const TabBarPage({super.key});
 
@@ -17,6 +18,7 @@ class _TabBarPageState extends State<TabBarPage>
     with SingleTickerProviderStateMixin {
   late TabController controller;
   String currentTabTitle = "Beranda";
+  String? _fotoProfilUrl; // Menyimpan URL foto profil pengguna
 
   @override
   void initState() {
@@ -28,9 +30,24 @@ class _TabBarPageState extends State<TabBarPage>
 
     // Tambahkan listener untuk mendeteksi perubahan tab langsung ketika swipe dimulai
     controller.addListener(() {
-      updateTabTitle(
-          controller.index); // Update judul setiap frame selama swipe
+      updateTabTitle(controller.index); // Update judul setiap frame selama swipe
     });
+
+    // Ambil foto profil pengguna saat inisialisasi
+    _getFotoProfil();
+  }
+
+  Future<void> _getFotoProfil() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      setState(() {
+        _fotoProfilUrl = userDoc['foto_profil'] ?? ''; // Jika kosong, tetap ''
+      });
+    }
   }
 
   @override
@@ -60,7 +77,6 @@ class _TabBarPageState extends State<TabBarPage>
     });
   }
 
-  // Fungsi untuk mengubah tab ke kalender
   void goToKalender() {
     controller.animateTo(1); // Ganti ke tab kalender
     updateTabTitle(1); // Ubah judul menjadi "Kalender"
@@ -90,15 +106,17 @@ class _TabBarPageState extends State<TabBarPage>
             padding: const EdgeInsets.all(7.0),
             child: IconButton(
               onPressed: () {
-                // Pindah ke halaman profil
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const Profil()),
                 );
               },
-              icon: const Icon(
-                Icons.person,
-                color: Color.fromARGB(255, 255, 255, 255),
+              icon: CircleAvatar(
+                radius: 15,
+                backgroundImage: _fotoProfilUrl != null && _fotoProfilUrl!.isNotEmpty
+                    ? NetworkImage(_fotoProfilUrl!) // URL dari Firestore
+                    : AssetImage('assets/images/default_profile.png') // Gambar default
+                        as ImageProvider,
               ),
             ),
           ),
@@ -107,18 +125,17 @@ class _TabBarPageState extends State<TabBarPage>
       body: TabBarView(
         controller: controller,
         children: [
-          beranda.BerandaPage(
-              onGoToKalender: goToKalender), // Pass the callback
+          beranda.BerandaPage(onGoToKalender: goToKalender),
           const kalender.KalenderPengingatPage(),
           const informasi.InformasiTanamanPage(),
-          const catatan.CatatanPertanianPage()
+          const catatan.CatatanPertanianPage(),
         ],
       ),
       bottomNavigationBar: SizedBox(
-        height: 53, // Ubah tinggi sesuai keinginan
-        width: double.infinity, // Lebar akan menyesuaikan dengan layar
+        height: 53,
+        width: double.infinity,
         child: Material(
-          elevation: 10.0, // Tambahkan shadow
+          elevation: 10.0,
           color: const Color.fromARGB(255, 46, 125, 50),
           child: TabBar(
             controller: controller,
